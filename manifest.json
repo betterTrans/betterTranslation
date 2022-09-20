@@ -1,0 +1,13 @@
+{
+    "name": "betterTranslation",
+    "version": "0.0.1",
+    "manifest_version": 3,
+    "description": "更好的翻譯外掛工具。",
+    "content_scripts": [ {
+        "matches": ["<all_urls>"],
+        "js": [
+            // "jquery-3.6.1.min.js",
+            "js/content.js"
+        ]
+    } ]
+}
