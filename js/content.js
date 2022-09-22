@@ -13,6 +13,15 @@ document.onkeydown = (e) =>{
         // 備份原始 HTML
 
         body0 = document.body.innerHTML;
+
+        // 分句
+        document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+
+        // 添加 title 屬性
+        document.querySelectorAll("sent").forEach((node)=>{
+            node.title = node.textContent;
+        });
+    
     }
     else if (e.altKey && e.key=='2') {
         // 自動捲動頁面
