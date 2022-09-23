@@ -9,6 +9,7 @@ inline_tags = [
     'acronym', 'bdo',  'dfn', 'kbd', 'map', 'object', 'output', 'q', 'samp', 'time',
     'var', 'cite',
     'nobr',
+    'code', // 多半出現在句子中
 ];
 // 區塊標籤：參見 https://www.w3schools.com/html/html_blocks.asp
 block_tags= [
@@ -27,7 +28,6 @@ block_tags= [
     'devsite-header', 'devsite-content', 'devsite-toc', 'devsite-footer-linkboxes', 'devsite-footer-utility',
     'devsite-language-selector', 'devsite-select',
     // 下面這些註解起來的，都會變成不明 tag，不會進行分句處理
-    // 'code',
     // 'script',
     // 'video',
     // 'noscript',
