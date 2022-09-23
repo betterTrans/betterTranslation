@@ -5,6 +5,7 @@
     "description": "更好的翻譯外掛工具。",
     "content_scripts": [ {
         "matches": ["<all_urls>"],
+        "css": ["css/content.css"],
         "js": [
             "js/sentTag.js",
             "js/content.js"

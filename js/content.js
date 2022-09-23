@@ -62,6 +62,8 @@ document.onkeydown = (e) =>{
             document.body.innerHTML = body1;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.title = orig_texts[i]
+                node.onmouseenter = (e) => { e.toElement.classList.add('active'); }
+                node.onmouseleave = (e) => { e.fromElement.classList.remove('active'); }
             });
             console.log("Alt+上: 已切換為譯文，title 顯示原文。")
         }
@@ -69,6 +71,8 @@ document.onkeydown = (e) =>{
             document.body.innerHTML = body0;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.title = tran_texts[i]
+                node.onmouseenter = (e) => { e.toElement.classList.add('active'); }
+                node.onmouseleave = (e) => { e.fromElement.classList.remove('active'); }
             });
             console.log("Alt+上: 已切換為原文，title 顯示譯文。")
         }
