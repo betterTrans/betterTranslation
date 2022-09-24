@@ -2,6 +2,8 @@ var body0 = null
 var body1 = null
 var orig_texts = {}
 var tran_texts = {}
+var orig_htmls = {}
+var tran_htmls = {}
 translated = false
 
 /*
@@ -22,6 +24,7 @@ document.onkeydown = (e) =>{
         // 備份各句原始文字
         document.querySelectorAll("sent").forEach((node, i)=>{
             orig_texts[i] = node.textContent
+            orig_htmls[i] = node.innerHTML
         });
 
         console.log("Alt+1: 原始 HTML 分句備份完成。")
@@ -50,6 +53,7 @@ document.onkeydown = (e) =>{
         // 備份各句翻譯後文字
         document.querySelectorAll("sent").forEach((node, i)=>{
             tran_texts[i] = node.textContent
+            tran_htmls[i] = node.innerHTML
             node.title = orig_texts[i]
         });
 
@@ -62,19 +66,60 @@ document.onkeydown = (e) =>{
             document.body.innerHTML = body1;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.title = orig_texts[i]
-                node.onmouseenter = (e) => { e.toElement.classList.add('active'); }
-                node.onmouseleave = (e) => { e.fromElement.classList.remove('active'); }
+                node.onmouseenter = e => e.target.classList.add('active');
+                node.onmouseleave = e => e.target.classList.remove('active');
+                node.onclick = e => {
+                    if (e.shiftKey && e.ctrlKey) {
+                        e.stopPropagation(); // 事件不再繼續往後傳，阻斷後面的事件（capture&bubble；往下抓往上冒）
+                        e.preventDefault(); // 阻斷預設行為=》例如點擊 link 不會前往該 url
+
+                        // 先處理之前別處的 textarea
+                        confirmModification();
+
+                        // 再處理自己此處的 textarea
+
+                        var prev_len = len(node.innerHTML)
+                        // prev_len = len(node.textContent)
+
+                        node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
+                        // node.innerHTML = `<textarea>${node.textContent}</textarea>`
+
+                        var textarea = node.querySelector("textarea")
+                        textarea.cols = prev_len
+                        textarea.style.height = `${textarea.scrollHeight}px`
+                    }
+                }
             });
-            console.log("Alt+上: 已切換為譯文，title 顯示原文。")
+            // console.log("Alt+上: 已切換為譯文，title 顯示原文。")
         }
         else {
             document.body.innerHTML = body0;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.title = tran_texts[i]
-                node.onmouseenter = (e) => { e.toElement.classList.add('active'); }
-                node.onmouseleave = (e) => { e.fromElement.classList.remove('active'); }
+                node.onmouseenter = e => e.target.classList.add('active');
+                node.onmouseleave = e => e.target.classList.remove('active');
             });
-            console.log("Alt+上: 已切換為原文，title 顯示譯文。")
+            // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
         }
+    }
+    else if (e.ctrlKey && e.key=='Enter') {
+        confirmModification();
+    }
+}
+
+function len(str){
+	return str.replace(/[^\x00-\xff]/g,"xx").length;
+}
+
+function confirmModification() {
+    var prev_textarea = document.querySelector("sent textarea")
+    if (prev_textarea) {
+        var prev_sent = prev_textarea.parentNode
+        if (prev_sent) {
+            prev_sent.innerHTML = prev_textarea.value
+        }
+
+        // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
+        // 但沒有 i 的資訊 ==》所以每個 sent 還是要有 id 以做為定位辨識
     }
 }
