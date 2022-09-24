@@ -50,6 +50,9 @@ document.onkeydown = (e) =>{
         // 備份翻譯後 HTML
         body1 = document.body.innerHTML;
 
+        // 先移除 Google 翻譯所加上的雙層 font 標籤
+        body1 = removeDoubleFontTagOfGoogleTranslation(body1)
+
         // 備份各句翻譯後文字
         document.querySelectorAll("sent").forEach((node, i)=>{
             tran_texts[i] = node.textContent
@@ -122,4 +125,11 @@ function confirmModification() {
         // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
         // 但沒有 i 的資訊 ==》所以每個 sent 還是要有 id 以做為定位辨識
     }
+}
+
+function removeDoubleFontTagOfGoogleTranslation(html_str) {
+    re_google_double_font_tag = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
+    html_str = html_str.replace(re_google_double_font_tag, '$1')
+
+    return html_str
 }
