@@ -68,6 +68,7 @@ document.onkeydown = (e) =>{
         if (translated) {
             document.body.innerHTML = body1;
             document.querySelectorAll("sent").forEach((node, i)=>{
+                node.id = `sent_${i}`
                 node.title = orig_texts[i]
                 node.onmouseenter = e => e.target.classList.add('active');
                 node.onmouseleave = e => e.target.classList.remove('active');
@@ -80,16 +81,8 @@ document.onkeydown = (e) =>{
                         confirmModification();
 
                         // 再處理自己此處的 textarea
+                        switchToModification(node);
 
-                        var prev_len = len(node.innerHTML)
-                        // prev_len = len(node.textContent)
-
-                        node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
-                        // node.innerHTML = `<textarea>${node.textContent}</textarea>`
-
-                        var textarea = node.querySelector("textarea")
-                        textarea.cols = prev_len
-                        textarea.style.height = `${textarea.scrollHeight}px`
                     }
                 }
             });
@@ -98,6 +91,7 @@ document.onkeydown = (e) =>{
         else {
             document.body.innerHTML = body0;
             document.querySelectorAll("sent").forEach((node, i)=>{
+                node.id = `sent_${i}`
                 node.title = tran_texts[i]
                 node.onmouseenter = e => e.target.classList.add('active');
                 node.onmouseleave = e => e.target.classList.remove('active');
@@ -108,23 +102,46 @@ document.onkeydown = (e) =>{
     else if (e.ctrlKey && e.key=='Enter') {
         confirmModification();
     }
+    else if (e.ctrlKey && e.key=='ArrowUp') {
+        nextSent(-1);
+    }
+    else if (e.ctrlKey && e.key=='ArrowDown') {
+        nextSent();
+    }
 }
 
 function len(str){
 	return str.replace(/[^\x00-\xff]/g,"xx").length;
 }
 
+function switchToModification(node) {
+    var prev_len = len(node.innerHTML)
+    // prev_len = len(node.textContent)
+
+    node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
+    // node.innerHTML = `<textarea>${node.textContent}</textarea>`
+
+    var textarea = node.querySelector("textarea")
+    textarea.cols = prev_len
+    textarea.style.height = `${textarea.scrollHeight}px`
+    textarea.focus()
+}
+
 function confirmModification() {
+    var prev_sent_id = null
     var prev_textarea = document.querySelector("sent textarea")
     if (prev_textarea) {
         var prev_sent = prev_textarea.parentNode
         if (prev_sent) {
+            prev_sent_id = prev_sent.id
             prev_sent.innerHTML = prev_textarea.value
         }
 
         // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
         // 但沒有 i 的資訊 ==》所以每個 sent 還是要有 id 以做為定位辨識
     }
+
+    return prev_sent_id
 }
 
 function removeDoubleFontTagOfGoogleTranslation(html_str) {
@@ -132,4 +149,29 @@ function removeDoubleFontTagOfGoogleTranslation(html_str) {
     html_str = html_str.replace(re_google_double_font_tag, '$1')
 
     return html_str
+}
+
+// 換句
+function nextSent(nth = 1) {
+    var new_sent_id = null
+    // 先處理好之前的 sent，並取得其 sent_id
+    var prev_sent_id = confirmModification()
+
+    if (prev_sent_id) {
+        // 再設定下一個要處理的 sent
+        new_sent_id = `sent_${parseInt(prev_sent_id.replace('sent_','')) + nth}`
+        new_sent = document.querySelector(`sent#${new_sent_id}`)
+
+        if (new_sent) {
+            switchToModification(new_sent)
+        }
+        else {
+            console.log('移動已經到了盡頭。。。')
+        }
+    }
+    else {
+        console.log('要開始編輯翻譯，請按下【Ctrl+Shift】，再點擊您要修改的句子。')
+    }
+
+    return new_sent_id
 }
