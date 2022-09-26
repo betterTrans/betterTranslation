@@ -4,7 +4,8 @@ var orig_texts = {}
 var tran_texts = {}
 var orig_htmls = {}
 var tran_htmls = {}
-translated = false
+var translated = false
+var path = window.location.pathname + window.location.search
 
 /*
 $(document).ready((e)=>{
@@ -27,8 +28,20 @@ document.onkeydown = (e) =>{
         document.querySelectorAll("sent").forEach((node, i)=>{
             orig_texts[i] = node.textContent
             orig_htmls[i] = node.innerHTML
-            localStorage.setItem('orig_texts', JSON.stringify(orig_texts))
-            localStorage.setItem('orig_htmls', JSON.stringify(orig_htmls))
+            // 保存到 localStorage
+            var orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
+            if (!orig_texts_by_path) {
+                orig_texts_by_path = {}
+            }
+            orig_texts_by_path[path] = orig_texts
+            localStorage.setItem('orig_texts_by_path', JSON.stringify(orig_texts_by_path))
+
+            var orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
+            if (!orig_htmls_by_path) {
+                orig_htmls_by_path = {}
+            }
+            orig_htmls_by_path[path] = orig_htmls
+            localStorage.setItem('orig_htmls_by_path', JSON.stringify(orig_htmls_by_path))
         });
 
         console.log("Alt+1: 原始 HTML 分句備份完成。")
@@ -61,8 +74,21 @@ document.onkeydown = (e) =>{
         document.querySelectorAll("sent").forEach((node, i)=>{
             tran_texts[i] = node.textContent
             tran_htmls[i] = node.innerHTML
-            localStorage.setItem('tran_texts', JSON.stringify(tran_texts))
-            localStorage.setItem('tran_htmls', JSON.stringify(tran_htmls))
+            // 保存到 localStorage
+            var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
+            if (!tran_texts_by_path) {
+                tran_texts_by_path = {}
+            }
+            tran_texts_by_path[path] = tran_texts
+            localStorage.setItem('tran_texts_by_path', JSON.stringify(tran_texts_by_path))
+
+            var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
+            if (!tran_htmls_by_path) {
+                tran_htmls_by_path = {}
+            }
+            tran_htmls_by_path[path] = tran_htmls
+            localStorage.setItem('tran_htmls_by_path', JSON.stringify(tran_htmls_by_path))
+
             // 添加 title
             node.title = orig_texts[i]
         });
@@ -123,8 +149,20 @@ function confirmModification() {
             tran_texts[i] = prev_sent.textContent
             tran_htmls[i] = prev_sent.innerHTML
             // 保存到 localStorage
-            localStorage.setItem('tran_texts', JSON.stringify(tran_texts))
-            localStorage.setItem('tran_htmls', JSON.stringify(tran_htmls))
+            var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
+            if (!tran_texts_by_path) {
+                tran_texts_by_path = {}
+            }
+            tran_texts_by_path[path] = tran_texts
+            localStorage.setItem('tran_texts_by_path', JSON.stringify(tran_texts_by_path))
+
+            var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
+            if (!tran_htmls_by_path) {
+                tran_htmls_by_path = {}
+            }
+            tran_htmls_by_path[path] = tran_htmls
+            localStorage.setItem('tran_htmls_by_path', JSON.stringify(tran_htmls_by_path))
+
             localStorage.setItem('prev_sent_id', prev_sent_id)
         }
 
@@ -182,10 +220,23 @@ function switchTranslation() {
     }
 
     // 取用 localStorage 裡的資料
-    orig_texts = JSON.parse(localStorage.getItem('orig_texts'))
-    orig_htmls = JSON.parse(localStorage.getItem('orig_htmls'))
-    tran_texts = JSON.parse(localStorage.getItem('tran_texts'))
-    tran_htmls = JSON.parse(localStorage.getItem('tran_htmls'))
+    orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
+    if (orig_texts_by_path && path in orig_texts_by_path) {
+        orig_texts = orig_texts_by_path[path]
+    }
+    orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
+    if (orig_htmls_by_path && path in orig_htmls_by_path) {
+        orig_htmls = orig_htmls_by_path[path]
+    }
+    tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
+    if (tran_texts_by_path && path in tran_texts_by_path) {
+        tran_texts = tran_texts_by_path[path]
+    }
+    tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
+    if (tran_htmls_by_path && path in tran_htmls_by_path) {
+        tran_htmls = tran_htmls_by_path[path]
+    }
+
     // 套入各句內容
     translated = !translated
     if (translated) {
