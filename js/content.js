@@ -67,15 +67,24 @@ document.onkeydown = (e) =>{
 
         console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
     }
-    else if (body0 && body1 && e.altKey && e.key=='ArrowUp') {
+    else if (e.altKey && e.key=='ArrowUp') {
         // 切換原文、譯文
+        // 分句了嗎？
+        if (!document.body.innerHTML.match(/<\/sent>/)) {
+            document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+        }
+        
+        // 取用 localStorage 裡的資料
         orig_texts = JSON.parse(localStorage.getItem('orig_texts'))
         orig_htmls = JSON.parse(localStorage.getItem('orig_htmls'))
         tran_texts = JSON.parse(localStorage.getItem('tran_texts'))
         tran_htmls = JSON.parse(localStorage.getItem('tran_htmls'))
+        // 套入各句內容
         translated = !translated
         if (translated) {
-            document.body.innerHTML = body1;
+            if (body1) {
+                document.body.innerHTML = body1;
+            }
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.id = `sent_${i}`
                 node.innerHTML = tran_htmls[i]
@@ -99,7 +108,9 @@ document.onkeydown = (e) =>{
             // console.log("Alt+上: 已切換為譯文，title 顯示原文。")
         }
         else {
-            document.body.innerHTML = body0;
+            if (body0) {
+                document.body.innerHTML = body0;
+            }
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.id = `sent_${i}`
                 node.innerHTML = orig_htmls[i]
