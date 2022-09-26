@@ -25,6 +25,8 @@ document.onkeydown = (e) =>{
         document.querySelectorAll("sent").forEach((node, i)=>{
             orig_texts[i] = node.textContent
             orig_htmls[i] = node.innerHTML
+            localStorage.setItem('orig_texts', JSON.stringify(orig_texts))
+            localStorage.setItem('orig_htmls', JSON.stringify(orig_htmls))
         });
 
         console.log("Alt+1: 原始 HTML 分句備份完成。")
@@ -47,16 +49,19 @@ document.onkeydown = (e) =>{
             }, interval_ms);
     }
     else if (e.altKey && e.key=='3') {
+        // 先移除 Google 翻譯所加上的雙層 font 標籤
+        document.body.innerHTML = removeDoubleFontTagOfGoogleTranslation(document.body.innerHTML)
+        
         // 備份翻譯後 HTML
         body1 = document.body.innerHTML;
-
-        // 先移除 Google 翻譯所加上的雙層 font 標籤
-        body1 = removeDoubleFontTagOfGoogleTranslation(body1)
 
         // 備份各句翻譯後文字
         document.querySelectorAll("sent").forEach((node, i)=>{
             tran_texts[i] = node.textContent
             tran_htmls[i] = node.innerHTML
+            localStorage.setItem('tran_texts', JSON.stringify(tran_texts))
+            localStorage.setItem('tran_htmls', JSON.stringify(tran_htmls))
+            // 添加 title
             node.title = orig_texts[i]
         });
 
@@ -64,11 +69,16 @@ document.onkeydown = (e) =>{
     }
     else if (body0 && body1 && e.altKey && e.key=='ArrowUp') {
         // 切換原文、譯文
+        orig_texts = JSON.parse(localStorage.getItem('orig_texts'))
+        orig_htmls = JSON.parse(localStorage.getItem('orig_htmls'))
+        tran_texts = JSON.parse(localStorage.getItem('tran_texts'))
+        tran_htmls = JSON.parse(localStorage.getItem('tran_htmls'))
         translated = !translated
         if (translated) {
             document.body.innerHTML = body1;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.id = `sent_${i}`
+                node.innerHTML = tran_htmls[i]
                 node.title = orig_texts[i]
                 node.onmouseenter = e => e.target.classList.add('active');
                 node.onmouseleave = e => e.target.classList.remove('active');
@@ -92,6 +102,7 @@ document.onkeydown = (e) =>{
             document.body.innerHTML = body0;
             document.querySelectorAll("sent").forEach((node, i)=>{
                 node.id = `sent_${i}`
+                node.innerHTML = orig_htmls[i]
                 node.title = tran_texts[i]
                 node.onmouseenter = e => e.target.classList.add('active');
                 node.onmouseleave = e => e.target.classList.remove('active');
@@ -135,6 +146,13 @@ function confirmModification() {
         if (prev_sent) {
             prev_sent_id = prev_sent.id
             prev_sent.innerHTML = prev_textarea.value
+            // 保存修改
+            i = parseInt(prev_sent_id.replace('sent_',''))
+            tran_texts[i] = prev_sent.textContent
+            tran_htmls[i] = prev_sent.innerHTML
+            // 保存到 localStorage
+            localStorage.setItem('tran_texts', JSON.stringify(tran_texts))
+            localStorage.setItem('tran_htmls', JSON.stringify(tran_htmls))
         }
 
         // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
