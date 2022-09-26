@@ -74,7 +74,16 @@ document.onkeydown = (e) =>{
         switchTranslation();
     }
     else if (e.ctrlKey && e.key=='Enter') {
-        confirmModification();
+        prev_sent_id = confirmModification();
+
+        // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
+        if (!prev_sent_id) {
+            prev_sent_id = localStorage.getItem('prev_sent_id')
+            var node = document.querySelector(`sent#${prev_sent_id}`)
+            if (node) {
+                switchToModification(node)
+            }
+        }
     }
     else if (e.ctrlKey && e.key=='ArrowUp') {
         nextSent(-1);
@@ -116,6 +125,7 @@ function confirmModification() {
             // 保存到 localStorage
             localStorage.setItem('tran_texts', JSON.stringify(tran_texts))
             localStorage.setItem('tran_htmls', JSON.stringify(tran_htmls))
+            localStorage.setItem('prev_sent_id', prev_sent_id)
         }
 
         // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
@@ -151,7 +161,13 @@ function nextSent(nth = 1) {
         }
     }
     else {
-        console.log('要開始編輯翻譯，請按下【Ctrl+Shift】，再點擊您要修改的句子。')
+        // console.log('要開始編輯翻譯，請按下【Ctrl+Shift】，再點擊您要修改的句子。')
+        // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
+        prev_sent_id = localStorage.getItem('prev_sent_id')
+        var node = document.querySelector(`sent#${prev_sent_id}`)
+        if (node) {
+            switchToModification(node)
+        }
     }
 
     return new_sent_id
