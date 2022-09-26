@@ -220,19 +220,19 @@ function switchTranslation() {
     }
 
     // 取用 localStorage 裡的資料
-    orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
+    var orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
     if (orig_texts_by_path && path in orig_texts_by_path) {
         orig_texts = orig_texts_by_path[path]
     }
-    orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
+    var orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
     if (orig_htmls_by_path && path in orig_htmls_by_path) {
         orig_htmls = orig_htmls_by_path[path]
     }
-    tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
+    var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
     if (tran_texts_by_path && path in tran_texts_by_path) {
         tran_texts = tran_texts_by_path[path]
     }
-    tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
+    var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
     if (tran_htmls_by_path && path in tran_htmls_by_path) {
         tran_htmls = tran_htmls_by_path[path]
     }
