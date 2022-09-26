@@ -16,7 +16,9 @@ document.onkeydown = (e) =>{
     if (e.altKey && e.key=='1') {
 
         // 分句
-        document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+        if (!document.body.innerHTML.match(/<\/sent>/)) {
+            document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+        }
 
         // 備份原始 HTML（先分句再備份，因為後面會用到的是分句後的 HTML）
         body0 = document.body.innerHTML;
@@ -51,7 +53,7 @@ document.onkeydown = (e) =>{
     else if (e.altKey && e.key=='3') {
         // 先移除 Google 翻譯所加上的雙層 font 標籤
         document.body.innerHTML = removeDoubleFontTagOfGoogleTranslation(document.body.innerHTML)
-        
+
         // 備份翻譯後 HTML
         body1 = document.body.innerHTML;
 
@@ -69,57 +71,7 @@ document.onkeydown = (e) =>{
     }
     else if (e.altKey && e.key=='ArrowUp') {
         // 切換原文、譯文
-        // 分句了嗎？
-        if (!document.body.innerHTML.match(/<\/sent>/)) {
-            document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
-        }
-        
-        // 取用 localStorage 裡的資料
-        orig_texts = JSON.parse(localStorage.getItem('orig_texts'))
-        orig_htmls = JSON.parse(localStorage.getItem('orig_htmls'))
-        tran_texts = JSON.parse(localStorage.getItem('tran_texts'))
-        tran_htmls = JSON.parse(localStorage.getItem('tran_htmls'))
-        // 套入各句內容
-        translated = !translated
-        if (translated) {
-            if (body1) {
-                document.body.innerHTML = body1;
-            }
-            document.querySelectorAll("sent").forEach((node, i)=>{
-                node.id = `sent_${i}`
-                node.innerHTML = tran_htmls[i]
-                node.title = orig_texts[i]
-                node.onmouseenter = e => e.target.classList.add('active');
-                node.onmouseleave = e => e.target.classList.remove('active');
-                node.onclick = e => {
-                    if (e.shiftKey && e.ctrlKey) {
-                        e.stopPropagation(); // 事件不再繼續往後傳，阻斷後面的事件（capture&bubble；往下抓往上冒）
-                        e.preventDefault(); // 阻斷預設行為=》例如點擊 link 不會前往該 url
-
-                        // 先處理之前別處的 textarea
-                        confirmModification();
-
-                        // 再處理自己此處的 textarea
-                        switchToModification(node);
-
-                    }
-                }
-            });
-            // console.log("Alt+上: 已切換為譯文，title 顯示原文。")
-        }
-        else {
-            if (body0) {
-                document.body.innerHTML = body0;
-            }
-            document.querySelectorAll("sent").forEach((node, i)=>{
-                node.id = `sent_${i}`
-                node.innerHTML = orig_htmls[i]
-                node.title = tran_texts[i]
-                node.onmouseenter = e => e.target.classList.add('active');
-                node.onmouseleave = e => e.target.classList.remove('active');
-            });
-            // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
-        }
+        switchTranslation();
     }
     else if (e.ctrlKey && e.key=='Enter') {
         confirmModification();
@@ -203,4 +155,70 @@ function nextSent(nth = 1) {
     }
 
     return new_sent_id
+}
+
+// 切換原文、譯文
+function switchTranslation() {
+
+    // 分句了嗎？
+    if (!document.body.innerHTML.match(/<\/sent>/)) {
+        document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+    }
+
+    // 取用 localStorage 裡的資料
+    orig_texts = JSON.parse(localStorage.getItem('orig_texts'))
+    orig_htmls = JSON.parse(localStorage.getItem('orig_htmls'))
+    tran_texts = JSON.parse(localStorage.getItem('tran_texts'))
+    tran_htmls = JSON.parse(localStorage.getItem('tran_htmls'))
+    // 套入各句內容
+    translated = !translated
+    if (translated) {
+        if (body1) {
+            document.body.innerHTML = body1;
+        }
+
+        document.querySelectorAll("sent").forEach((node, i)=>{
+            node.id = `sent_${i}`
+            if (tran_htmls && i in tran_htmls) {
+                node.innerHTML = tran_htmls[i]
+            }
+            if (orig_texts && i in orig_texts) {
+                node.title = orig_texts[i]
+            }
+            node.onmouseenter = e => e.target.classList.add('active');
+            node.onmouseleave = e => e.target.classList.remove('active');
+            node.onclick = e => {
+                if (e.shiftKey && e.ctrlKey) {
+                    e.stopPropagation(); // 事件不再繼續往後傳，阻斷後面的事件（capture&bubble；往下抓往上冒）
+                    e.preventDefault(); // 阻斷預設行為=》例如點擊 link 不會前往該 url
+
+                    // 先處理之前別處的 textarea
+                    confirmModification();
+
+                    // 再處理自己此處的 textarea
+                    switchToModification(node);
+
+                }
+            }
+        });
+        // console.log("Alt+上: 已切換為譯文，title 顯示原文。")
+    }
+    else {
+        if (body0) {
+            document.body.innerHTML = body0;
+        }
+
+        document.querySelectorAll("sent").forEach((node, i)=>{
+            node.id = `sent_${i}`
+            if (orig_htmls && i in orig_htmls) {
+                node.innerHTML = orig_htmls[i]
+            }
+            if (tran_texts && i in tran_texts) {
+                node.title = tran_texts[i]
+            }
+            node.onmouseenter = e => e.target.classList.add('active');
+            node.onmouseleave = e => e.target.classList.remove('active');
+        });
+        // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
+    }
 }
