@@ -154,8 +154,6 @@ function cancelModification() {
 
             // 保存到 localStorage
             upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)
-            // 保存到 DB
-            upsertValueFromDB('prev_sent_id_by_path', path, prev_sent_id)
         }
     }
 
