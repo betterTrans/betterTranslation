@@ -91,6 +91,9 @@ document.onkeydown = (e) =>{
             }
         }
     }
+    else if (e.key=='Escape') {
+        cancelModification();
+    }
     else if (e.ctrlKey && e.key=='ArrowUp') {
         nextSent(-1);
     }
@@ -133,6 +136,26 @@ function confirmModification() {
             upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
 
             upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)
+        }
+    }
+
+    return prev_sent_id
+}
+
+function cancelModification() {
+    var prev_sent_id = null
+    var prev_textarea = document.querySelector("sent textarea")
+    if (prev_textarea) {
+        var prev_sent = prev_textarea.parentNode
+        if (prev_sent) {
+            prev_sent_id = prev_sent.id
+            i = parseInt(prev_sent_id.replace('sent_',''))
+            prev_sent.innerHTML = tran_htmls[i]
+
+            // 保存到 localStorage
+            upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)
+            // 保存到 DB
+            upsertValueFromDB('prev_sent_id_by_path', path, prev_sent_id)
         }
     }
 
