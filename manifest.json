@@ -7,6 +7,7 @@
         "matches": ["<all_urls>"],
         "css": ["css/content.css"],
         "js": [
+            "js/storage.js",
             "js/sentTag.js",
             "js/content.js"
         ]

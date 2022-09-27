@@ -28,21 +28,11 @@ document.onkeydown = (e) =>{
         document.querySelectorAll("sent").forEach((node, i)=>{
             orig_texts[i] = node.textContent
             orig_htmls[i] = node.innerHTML
-            // 保存到 localStorage
-            var orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
-            if (!orig_texts_by_path) {
-                orig_texts_by_path = {}
-            }
-            orig_texts_by_path[path] = orig_texts
-            localStorage.setItem('orig_texts_by_path', JSON.stringify(orig_texts_by_path))
-
-            var orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
-            if (!orig_htmls_by_path) {
-                orig_htmls_by_path = {}
-            }
-            orig_htmls_by_path[path] = orig_htmls
-            localStorage.setItem('orig_htmls_by_path', JSON.stringify(orig_htmls_by_path))
         });
+
+        // 保存到 localStorage
+        upsertValueByPath('orig_texts_by_path', path, orig_texts)
+        upsertValueByPath('orig_htmls_by_path', path, orig_htmls)
 
         console.log("Alt+1: 原始 HTML 分句備份完成。")
 
@@ -74,24 +64,14 @@ document.onkeydown = (e) =>{
         document.querySelectorAll("sent").forEach((node, i)=>{
             tran_texts[i] = node.textContent
             tran_htmls[i] = node.innerHTML
-            // 保存到 localStorage
-            var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
-            if (!tran_texts_by_path) {
-                tran_texts_by_path = {}
-            }
-            tran_texts_by_path[path] = tran_texts
-            localStorage.setItem('tran_texts_by_path', JSON.stringify(tran_texts_by_path))
-
-            var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
-            if (!tran_htmls_by_path) {
-                tran_htmls_by_path = {}
-            }
-            tran_htmls_by_path[path] = tran_htmls
-            localStorage.setItem('tran_htmls_by_path', JSON.stringify(tran_htmls_by_path))
 
             // 添加 title
             node.title = orig_texts[i]
         });
+
+        // 保存到 localStorage
+        upsertValueByPath('tran_texts_by_path', path, tran_texts)
+        upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
 
         console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
     }
@@ -104,7 +84,7 @@ document.onkeydown = (e) =>{
 
         // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
         if (!prev_sent_id) {
-            prev_sent_id = localStorage.getItem('prev_sent_id')
+            prev_sent_id = getValueByPath('prev_sent_id_by_path', path, 'sent_0')
             var node = document.querySelector(`sent#${prev_sent_id}`)
             if (node) {
                 switchToModification(node)
@@ -149,25 +129,11 @@ function confirmModification() {
             tran_texts[i] = prev_sent.textContent
             tran_htmls[i] = prev_sent.innerHTML
             // 保存到 localStorage
-            var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
-            if (!tran_texts_by_path) {
-                tran_texts_by_path = {}
-            }
-            tran_texts_by_path[path] = tran_texts
-            localStorage.setItem('tran_texts_by_path', JSON.stringify(tran_texts_by_path))
+            upsertValueByPath('tran_texts_by_path', path, tran_texts)
+            upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
 
-            var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
-            if (!tran_htmls_by_path) {
-                tran_htmls_by_path = {}
-            }
-            tran_htmls_by_path[path] = tran_htmls
-            localStorage.setItem('tran_htmls_by_path', JSON.stringify(tran_htmls_by_path))
-
-            localStorage.setItem('prev_sent_id', prev_sent_id)
+            upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)
         }
-
-        // tran_htmls 和 tran_texts 裡相應的記錄也應該要更新
-        // 但沒有 i 的資訊 ==》所以每個 sent 還是要有 id 以做為定位辨識
     }
 
     return prev_sent_id
@@ -201,7 +167,7 @@ function nextSent(nth = 1) {
     else {
         // console.log('要開始編輯翻譯，請按下【Ctrl+Shift】，再點擊您要修改的句子。')
         // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
-        prev_sent_id = localStorage.getItem('prev_sent_id')
+        prev_sent_id = getValueByPath('prev_sent_id_by_path', path, 'sent_0')
         var node = document.querySelector(`sent#${prev_sent_id}`)
         if (node) {
             switchToModification(node)
@@ -220,22 +186,10 @@ function switchTranslation() {
     }
 
     // 取用 localStorage 裡的資料
-    var orig_texts_by_path = JSON.parse(localStorage.getItem('orig_texts_by_path'))
-    if (orig_texts_by_path && path in orig_texts_by_path) {
-        orig_texts = orig_texts_by_path[path]
-    }
-    var orig_htmls_by_path = JSON.parse(localStorage.getItem('orig_htmls_by_path'))
-    if (orig_htmls_by_path && path in orig_htmls_by_path) {
-        orig_htmls = orig_htmls_by_path[path]
-    }
-    var tran_texts_by_path = JSON.parse(localStorage.getItem('tran_texts_by_path'))
-    if (tran_texts_by_path && path in tran_texts_by_path) {
-        tran_texts = tran_texts_by_path[path]
-    }
-    var tran_htmls_by_path = JSON.parse(localStorage.getItem('tran_htmls_by_path'))
-    if (tran_htmls_by_path && path in tran_htmls_by_path) {
-        tran_htmls = tran_htmls_by_path[path]
-    }
+    orig_texts = getValueByPath('orig_texts_by_path', path, {})
+    orig_htmls = getValueByPath('orig_htmls_by_path', path, {})
+    tran_texts = getValueByPath('tran_texts_by_path', path, {})
+    tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
 
     // 套入各句內容
     translated = !translated
