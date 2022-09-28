@@ -13,6 +13,17 @@ $(document).ready((e)=>{
 })
 */
 
+// 回應【背景服務】或【彈出頁面】送過來的請求
+chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
+    if (message.cmd == 'get_hotkeys_desc') {
+        var hotkeys_desc = []
+        for (var i in hotkeys) {
+            hotkeys_desc.push(`【${i}】：${hotkeys[i].desc}`)
+        }
+        sendResponse(hotkeys_desc);
+    }
+});
+
 document.onkeydown = (e) =>{
     var hotkey_str = ((e.ctrlKey)?'Ctrl':'') + ((e.altKey)?'Alt':'') + ((e.shiftKey)?'Shift':'') + e.key;
 
