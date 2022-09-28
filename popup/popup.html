@@ -1,25 +1,22 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <style>
-            body {
-                width: 320px;
-            }
-        </style>
+        <link rel="stylesheet" href="popup.css">
+        <script type="text/javascript" src="popup.js"></script>
     </head>
     <body>
         <h1>更好的翻譯</h1>
         <h3>快速鍵說明：</h3>
-        <p>
-            <ul>
+        <div>
+            <ul id="hotkey_desc">
                 <li>Alt+1：進行分句，並備份原文</li>
                 <li>Alt+2：（請先進行 Google 翻譯）自動滾動頁面</li>
-                <li>Alt+3：備份譯文（然後請關閉 Google 翻譯）</li>
+                <li>Alt+3：備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）</li>
                 <li>Alt+上：切換原文、譯文（請關閉 Google 翻譯）</li>
                 <hr/>
                 <li>Ctrl+Shift+點擊：編輯譯句</li>
                 <li>Ctrl+Enter：完成譯句編輯</li>
             </ul>
-        </p>
+        </div>
     </body>
 </html>

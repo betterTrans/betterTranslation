@@ -14,94 +14,151 @@ $(document).ready((e)=>{
 */
 
 document.onkeydown = (e) =>{
-    if (e.altKey && e.key=='1') {
+    var hotkey_str = ((e.ctrlKey)?'Ctrl':'') + ((e.altKey)?'Alt':'') + ((e.shiftKey)?'Shift':'') + e.key;
 
-        // 分句
-        if (!document.body.innerHTML.match(/<\/sent>/)) {
-            document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+    if (hotkey_str in hotkeys) {
+        // console.log(hotkey_str);
+        // console.log(hotkeys[hotkey_str].desc)
+        // console.log(typeof hotkeys[hotkey_str].handler)
+        if (typeof hotkeys[hotkey_str].handler == 'function') {
+            hotkeys[hotkey_str].handler();
         }
-
-        // 備份原始 HTML（先分句再備份，因為後面會用到的是分句後的 HTML）
-        body0 = document.body.innerHTML;
-
-        // 備份各句原始文字
-        document.querySelectorAll("sent").forEach((node, i)=>{
-            orig_texts[i] = node.textContent
-            orig_htmls[i] = node.innerHTML
-        });
-
-        // 保存到 localStorage
-        upsertValueByPath('orig_texts_by_path', path, orig_texts)
-        upsertValueByPath('orig_htmls_by_path', path, orig_htmls)
-
-        console.log("Alt+1: 原始 HTML 分句備份完成。")
-
-    }
-    else if (e.altKey && e.key=='2') {
-        // 自動捲動頁面
-
-        var init_pos = document.body.scrollTop; 	// 起始位置：從【最頂端位置】開始
-        var interval_ms = 100; // 每次滾動間隔時間（ms）
-        var scroll_distance = 100; // 每次滾動距離（px）
-
-        // 設定週期性動作，直到抵達頁面尾端為止
-        var autoscroll = setInterval( () => {
-                window.scrollTo(0, init_pos = init_pos  + scroll_distance );
-                if (init_pos > document.body.scrollHeight) {
-                    clearInterval(autoscroll);  // 超過頁面總高度就結束
-                    console.log("Alt+2: 自動捲動頁面完成。")
-                }
-            }, interval_ms);
-    }
-    else if (e.altKey && e.key=='3') {
-        // 先移除 Google 翻譯所加上的雙層 font 標籤
-        document.body.innerHTML = removeDoubleFontTagOfGoogleTranslation(document.body.innerHTML)
-
-        // 備份翻譯後 HTML
-        body1 = document.body.innerHTML;
-
-        // 備份各句翻譯後文字
-        document.querySelectorAll("sent").forEach((node, i)=>{
-            tran_texts[i] = node.textContent
-            tran_htmls[i] = node.innerHTML
-
-            // 添加 title
-            node.title = orig_texts[i]
-        });
-
-        // 保存到 localStorage
-        upsertValueByPath('tran_texts_by_path', path, tran_texts)
-        upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
-
-        console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
-    }
-    else if (e.altKey && e.key=='ArrowUp') {
-        // 切換原文、譯文
-        switchTranslation();
-    }
-    else if (e.ctrlKey && e.key=='Enter') {
-        prev_sent_id = confirmModification();
-
-        // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
-        if (!prev_sent_id) {
-            prev_sent_id = getValueByPath('prev_sent_id_by_path', path, 'sent_0')
-            var node = document.querySelector(`sent#${prev_sent_id}`)
-            if (node) {
-                switchToModification(node)
-            }
-        }
-    }
-    else if (e.key=='Escape') {
-        cancelModification();
-    }
-    else if (e.ctrlKey && e.key=='ArrowUp') {
-        nextSent(-1);
-    }
-    else if (e.ctrlKey && e.key=='ArrowDown') {
-        nextSent();
     }
 }
 
+//=========================
+// 快速鍵函式
+//=========================
+hotkeys = {
+    'Alt1': {
+        desc: '進行分句，並備份原文',
+        handler: Alt1,
+    },
+    'Alt2': {
+        desc: '（請先進行 Google 翻譯）自動滾動頁面',
+        handler: Alt2,
+    },
+    'Alt3': {
+        desc: '備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）',
+        handler: Alt3,
+    },
+    'AltArrowUp': {
+        desc: '切換原文、譯文（請關閉 Google 翻譯）',
+        // handler: AltArrowUp,
+        handler: switchTranslation,
+    },
+    'CtrlEnter': {
+        desc: '完成譯句編輯',
+        handler: CtrlEnter,
+    },
+    'CtrlArrowUp': {
+        desc: '完成譯句編輯、切換到上一句',
+        // handler: CtrlArrowUp,
+        handler: ()=>{nextSent(-1)},    // 處理函式若需要用到參數，可以採用此寫法。
+    },
+    'CtrlArrowDown': {
+        desc: '完成譯句編輯、切換到上一句',
+        // handler: CtrlArrowDown,
+        handler: nextSent,
+    },
+    'Escape': {
+        desc: '放棄修改，退出編輯界面',
+        // handler: Escape,
+        handler: cancelModification,
+    },
+}
+
+function Alt1(){
+    // 分句
+    if (!document.body.innerHTML.match(/<\/sent>/)) {
+        document.body.innerHTML = addSentTag2HTML(document.body.innerHTML);
+    }
+
+    // 備份原始 HTML（先分句再備份，因為後面會用到的是分句後的 HTML）
+    body0 = document.body.innerHTML;
+
+    // 備份各句原始文字
+    document.querySelectorAll("sent").forEach((node, i)=>{
+        orig_texts[i] = node.textContent
+        orig_htmls[i] = node.innerHTML
+    });
+
+    // 保存到 localStorage
+    upsertValueByPath('orig_texts_by_path', path, orig_texts)
+    upsertValueByPath('orig_htmls_by_path', path, orig_htmls)
+
+    console.log("Alt+1: 原始 HTML 分句備份完成。")
+}
+function Alt2(){
+    // 自動捲動頁面
+
+    var init_pos = document.body.scrollTop; 	// 起始位置：從【最頂端位置】開始
+    var interval_ms = 100; // 每次滾動間隔時間（ms）
+    var scroll_distance = 100; // 每次滾動距離（px）
+
+    // 設定週期性動作，直到抵達頁面尾端為止
+    var autoscroll = setInterval( () => {
+            window.scrollTo(0, init_pos = init_pos  + scroll_distance );
+            if (init_pos > document.body.scrollHeight) {
+                clearInterval(autoscroll);  // 超過頁面總高度就結束
+                console.log("Alt+2: 自動捲動頁面完成。")
+            }
+        }, interval_ms);
+}
+function Alt3(){
+// 先移除 Google 翻譯所加上的雙層 font 標籤
+    document.body.innerHTML = removeDoubleFontTagOfGoogleTranslation(document.body.innerHTML)
+
+    // 備份翻譯後 HTML
+    body1 = document.body.innerHTML;
+
+    // 備份各句翻譯後文字
+    document.querySelectorAll("sent").forEach((node, i)=>{
+        tran_texts[i] = node.textContent
+        tran_htmls[i] = node.innerHTML
+        // 添加 title
+        node.title = orig_texts[i]
+    });
+
+    // 保存到 localStorage
+    upsertValueByPath('tran_texts_by_path', path, tran_texts)
+    upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
+
+    console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
+}
+/*
+function AltArrowUp(){
+    // 切換原文、譯文
+    switchTranslation();
+}
+*/
+function CtrlEnter(){
+    prev_sent_id = confirmModification();
+
+    // 如果沒有開啟任何編輯頁面，就開啟之前最後修改的那個編輯頁面
+    if (!prev_sent_id) {
+        prev_sent_id = getValueByPath('prev_sent_id_by_path', path, 'sent_0')
+        var node = document.querySelector(`sent#${prev_sent_id}`)
+        if (node) {
+            switchToModification(node)
+        }
+    }
+}
+/*
+function Escape(){
+    cancelModification();
+}
+function CtrlArrowUp(){
+    nextSent(-1);
+}
+function CtrlArrowDown(){
+    nextSent();
+}
+*/
+
+//=========================
+// 公用函式
+//=========================
 function len(str){
 	return str.replace(/[^\x00-\xff]/g,"xx").length;
 }
