@@ -11,5 +11,8 @@
             "js/sentTag.js",
             "js/content.js"
         ]
-    } ]
+    } ],
+    "action": {
+        "default_popup": "html/popup.html"
+    }
 }
