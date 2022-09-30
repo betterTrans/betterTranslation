@@ -1,3 +1,11 @@
+chrome.storage.local.get('api_key', r => {
+    api_key = r.api_key
+    if (api_key) {
+        var partial_api_key = (api_key.length>5)? api_key.substring(0,5)+'......' : api_key
+        document.querySelector("#current_api_key").innerHTML = `目前 API_KEY：${partial_api_key}`
+    }
+})
+
 
 // 發出 message，向 content-script 索取資訊
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
@@ -30,9 +38,10 @@ document.querySelector("#api_key_input_text").onkeydown = e => {
 
 // 點擊【清除】按鍵的話...
 document.querySelector("#api_key_clear_button").onclick = e =>{
-    var api_key = null
-    sendAPIKEY2Background(api_key)
-    document.querySelector("#current_api_key").innerHTML = '目前尚未設定 API_KEY。。。'
+    chrome.storage.local.remove('api_key',()=>{
+        document.querySelector("#current_api_key").innerHTML = '目前尚未設定 API_KEY。。。'
+    });
+    chrome.runtime.sendMessage({cmd: 'remove_api_key'});
 }
 
 // 把 API_KEY 送往背景服務
