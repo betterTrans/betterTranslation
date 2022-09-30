@@ -25,11 +25,22 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     else if (message.cmd == 'tran_sent_html') {
         // 【背景服務】送來外部翻譯結果的話。。。
         if (message.data.tran_sent_html) {
-            document.body.innerHTML = message.data.tran_sent_html
+            //document.body.innerHTML = message.data.tran_sent_html // 全文送譯，全文套入，是很浪費的做法
+            // 譯文逐句套入
+            var sent_nodes = new DOMParser().parseFromString(message.data.tran_sent_html, "text/html").body;
+            var id2Tran_innerHTML = {}
+            sent_nodes.querySelectorAll("sent").forEach((item,i)=>{
+                //id2Tran_innerHTML[item.id] = item.innerHTML
+                id2Tran_innerHTML[i] = item.innerHTML
+            })
+            document.querySelectorAll("sent").forEach((item,i)=>{
+                //item.innerHTML = id2Tran_innerHTML[item.id]
+                item.innerHTML = id2Tran_innerHTML[i]
+            })
             translated = true
+            // 備份譯文
             Alt3()
         }
-        sendResponse('【網頁內容】這邊收到外部翻譯結果囉。。。')
     }
 });
 
@@ -151,19 +162,19 @@ function Alt3(){
     console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
 }
 function AltShift$() {
-    console.log("一鍵翻譯")
+    // console.log("一鍵翻譯")
+    // 進行分句、備份原文
     Alt1()
-    chrome.runtime.sendMessage(
-        {cmd: 'get_google_translation_V2', data: {sent_html: document.body.innerHTML}}, 
-        (response) => {
-            console.log(response) 
-            // 取回譯文之後，其實還要把譯文套入頁面，並執行【Alt+3】備份譯文的工作。
-            // 但取得譯文比較耗時，這裡取得 response 時通常還沒完成。
-            // 真正取得譯文之後，【背景服務】還會 sendMessage 回來，
-            // 到時候這邊還是要靠 onMessage 才能接收到譯文。
-            // 後續的工作（例如套入譯文、Alt3() 等等）也會在那邊繼續完成。
-        }
-    );
+    // var sent_html = document.body.innerHTML  // 全文送譯太浪費了
+    // 把需要進行翻譯的各句連成一氣
+    var sent_html = ''
+    document.querySelectorAll("sent").forEach((item)=>{
+        sent_html += item.outerHTML
+    })
+    chrome.runtime.sendMessage({
+        cmd: 'get_google_translation_V2',
+        data: {sent_html: sent_html}
+    });
 }
 /*
 function AltArrowUp(){
