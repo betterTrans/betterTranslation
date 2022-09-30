@@ -22,6 +22,15 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
         }
         sendResponse(hotkeys_desc);
     }
+    else if (message.cmd == 'tran_sent_html') {
+        // 【背景服務】送來外部翻譯結果的話。。。
+        if (message.data.tran_sent_html) {
+            document.body.innerHTML = message.data.tran_sent_html
+            translated = true
+            Alt3()
+        }
+        sendResponse('【網頁內容】這邊收到外部翻譯結果囉。。。')
+    }
 });
 
 document.onkeydown = (e) =>{
@@ -52,6 +61,10 @@ hotkeys = {
     'Alt3': {
         desc: '備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）',
         handler: Alt3,
+    },
+    'AltShift$': {
+        desc: '一鍵翻譯（使用外部的 Google 翻譯 API）',
+        handler: AltShift$,
     },
     'AltArrowUp': {
         desc: '切換原文、譯文（請關閉 Google 翻譯）',
@@ -136,6 +149,21 @@ function Alt3(){
     upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
 
     console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
+}
+function AltShift$() {
+    console.log("一鍵翻譯")
+    Alt1()
+    chrome.runtime.sendMessage(
+        {cmd: 'get_google_translation_V2', data: {sent_html: document.body.innerHTML}}, 
+        (response) => {
+            console.log(response) 
+            // 取回譯文之後，其實還要把譯文套入頁面，並執行【Alt+3】備份譯文的工作。
+            // 但取得譯文比較耗時，這裡取得 response 時通常還沒完成。
+            // 真正取得譯文之後，【背景服務】還會 sendMessage 回來，
+            // 到時候這邊還是要靠 onMessage 才能接收到譯文。
+            // 後續的工作（例如套入譯文、Alt3() 等等）也會在那邊繼續完成。
+        }
+    );
 }
 /*
 function AltArrowUp(){
