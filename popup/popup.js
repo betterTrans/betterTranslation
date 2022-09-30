@@ -12,3 +12,34 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
     });
 });
 
+// 點擊【送出】按鍵的話...
+document.querySelector("#api_key_confirm_button").onclick = e =>{
+    var api_key = document.querySelector("#api_key_input_text").value
+    sendAPIKEY2Background(api_key)
+}
+
+// 在輸入框按下【Enter】的話...
+document.querySelector("#api_key_input_text").onkeydown = e => {
+    if (e.key == 'Enter') {
+        var api_key = e.target.value
+        sendAPIKEY2Background(api_key)
+    }
+}
+
+// 點擊【清除】按鍵的話...
+document.querySelector("#api_key_clear_button").onclick = e =>{
+    chrome.storage.local.remove('key',()=>{
+        document.querySelector("#current_api_key").innerHTML = '目前尚未設定 API_KEY。。。'
+    });
+}
+
+// 把 API_KEY 送往背景服務
+function sendAPIKEY2Background(api_key) {
+    chrome.runtime.sendMessage({cmd: 'api_key', data: {api_key: api_key}}, (response) => {
+        // background.js 那邊確實收到 API_KEY 的話，會把 API_KEY 再送回來。
+        if (response == api_key){
+            var partial_api_key = (api_key.length>5)? api_key.substring(0,5)+'......' : api_key
+            document.querySelector("#current_api_key").innerHTML = `目前 API_KEY：${partial_api_key}`
+        }
+    });
+}

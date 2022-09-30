@@ -2,7 +2,6 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="popup.css">
-        <script type="text/javascript" src="popup.js"></script>
     </head>
     <body>
         <h1>更好的翻譯</h1>
@@ -18,5 +17,16 @@
                 <li>Ctrl+Enter：完成譯句編輯</li>
             </ul>
         </div>
+        <div>
+            <h3>一鍵翻譯：</h3>
+            <label for="api_key_input_text">此功能會使用到 Google 翻譯 API。請使用您自己的 API_KEY：</label>
+            <div>
+                <input type="text" id="api_key_input_text" name="api_key" required size="40">
+                <input type="button" id="api_key_confirm_button" value="送出" >
+                <input type="button" id="api_key_clear_button" value="清除" >
+            </div>
+            <div id="current_api_key">目前尚未設定 API_KEY。。。</div>
+        </div>
+        <script type="text/javascript" src="popup.js"></script>
     </body>
 </html>
