@@ -18,6 +18,11 @@
     "background": {
         "service_worker": "background/background.js"
     },
+    "options_page": "popup/popup.html",
+    "options_ui": {
+        "page": "popup/popup.html",
+        "open_in_tab": false
+    },
     "permissions": [
         "storage"
     ]
