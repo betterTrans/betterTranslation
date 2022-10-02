@@ -23,6 +23,44 @@
         "page": "popup/popup.html",
         "open_in_tab": false
     },
+    "commands": {
+        "Alt0": {
+            "suggested_key": {
+                "default": "Alt+0"
+              },
+            "description": "開啟快速鍵設定頁面"
+        },
+        "Alt1": {
+            "description": "進行分句，並備份原文"
+        },
+        "Alt2": {
+            "description": "（請先進行 Google 翻譯）自動滾動頁面"
+        },
+        "Alt3": {
+            "description": "備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）"
+        },
+        "AltShift$": {
+            "suggested_key": {
+              "default": "Alt+Shift+4"
+            },
+            "description": "一鍵翻譯（使用外部的 Google 翻譯 API）"
+        },
+        "AltUp": {
+            "description": "切換原文、譯文（請關閉 Google 翻譯）"
+        },
+        "CtrlEnter": {
+            "description": "完成譯句編輯"
+        },
+        "CtrlUp": {
+            "description": "完成譯句編輯、切換到上一句"
+        },
+        "CtrlDown": {
+            "description": "完成譯句編輯、切換到上一句"
+        },
+        "Esc": {
+            "description": "放棄修改，退出編輯界面"
+        }
+    },
     "permissions": [
         "storage"
     ]

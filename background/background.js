@@ -20,13 +20,24 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
                             data: {tran_sent_html: tran_sent_html}
                         }
                     );
-                })
+                });
             }
             else {
                 msg = '找不到 API_KEY...請先設定好您的 API_KEY！'
                 console.log(msg)
                 sendResponse(msg)
             }
+        });
+    }
+});
+
+chrome.commands.onCommand.addListener((command) => {
+    if (command=='Alt0') {
+        chrome.tabs.create({url: "chrome://extensions/configureCommands"});
+    }
+    else {  // 其他的送往 content.js 進行處理
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id, {cmd: command});
         });
     }
 });

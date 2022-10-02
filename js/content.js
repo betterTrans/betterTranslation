@@ -15,14 +15,7 @@ $(document).ready((e)=>{
 
 // 回應【背景服務】或【彈出頁面】送過來的請求
 chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
-    if (message.cmd == 'get_hotkeys_desc') {
-        var hotkeys_desc = []
-        for (var i in hotkeys) {
-            hotkeys_desc.push(`【${i}】：${hotkeys[i].desc}`)
-        }
-        sendResponse(hotkeys_desc);
-    }
-    else if (message.cmd == 'tran_sent_html') {
+    if (message.cmd == 'tran_sent_html') {
         // 【背景服務】送來外部翻譯結果的話。。。
         if (message.data.tran_sent_html) {
             //document.body.innerHTML = message.data.tran_sent_html // 全文送譯，全文套入，是很浪費的做法
@@ -42,17 +35,23 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             Alt3()
         }
     }
+    else if (message.cmd in hotkey_handlers) { // 【背景服務】的快速鍵設定
+        if (typeof hotkey_handlers[message.cmd] == 'function') {
+            hotkey_handlers[message.cmd]();
+        }
+    }
 });
 
 document.onkeydown = (e) =>{
-    var hotkey_str = ((e.ctrlKey)?'Ctrl':'') + ((e.altKey)?'Alt':'') + ((e.shiftKey)?'Shift':'') + e.key;
+    // 預設快速鍵設定（如果 chrome.commands 設定了同樣的快速鍵組合，這裡就不會執行動作喲）
+    var hotkey_cmd = ((e.ctrlKey)?'Ctrl':'')
+                    + ((e.altKey)?'Alt':'')
+                    + ((e.shiftKey)?'Shift':'')
+                    + e.key.replace('Arrow','').replace('Escape','Esc');
 
-    if (hotkey_str in hotkeys) {
-        // console.log(hotkey_str);
-        // console.log(hotkeys[hotkey_str].desc)
-        // console.log(typeof hotkeys[hotkey_str].handler)
-        if (typeof hotkeys[hotkey_str].handler == 'function') {
-            hotkeys[hotkey_str].handler();
+    if (hotkey_cmd in hotkey_handlers) {
+        if (typeof hotkey_handlers[hotkey_cmd] == 'function') {
+            hotkey_handlers[hotkey_cmd]();
         }
     }
 }
@@ -60,49 +59,17 @@ document.onkeydown = (e) =>{
 //=========================
 // 快速鍵函式
 //=========================
-hotkeys = {
-    'Alt1': {
-        desc: '進行分句，並備份原文',
-        handler: Alt1,
-    },
-    'Alt2': {
-        desc: '（請先進行 Google 翻譯）自動滾動頁面',
-        handler: Alt2,
-    },
-    'Alt3': {
-        desc: '備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）',
-        handler: Alt3,
-    },
-    'AltShift$': {
-        desc: '一鍵翻譯（使用外部的 Google 翻譯 API）',
-        handler: AltShift$,
-    },
-    'AltArrowUp': {
-        desc: '切換原文、譯文（請關閉 Google 翻譯）',
-        // handler: AltArrowUp,
-        handler: switchTranslation,
-    },
-    'CtrlEnter': {
-        desc: '完成譯句編輯',
-        handler: CtrlEnter,
-    },
-    'CtrlArrowUp': {
-        desc: '完成譯句編輯、切換到上一句',
-        // handler: CtrlArrowUp,
-        handler: ()=>{nextSent(-1)},    // 處理函式若需要用到參數，可以採用此寫法。
-    },
-    'CtrlArrowDown': {
-        desc: '完成譯句編輯、切換到上一句',
-        // handler: CtrlArrowDown,
-        handler: nextSent,
-    },
-    'Escape': {
-        desc: '放棄修改，退出編輯界面',
-        // handler: Escape,
-        handler: cancelModification,
-    },
+hotkey_handlers = {
+    'Alt1':  Alt1,
+    'Alt2': Alt2,
+    'Alt3': Alt3,
+    'AltShift$': AltShift$,
+    'AltUp': switchTranslation, // AltUp,
+    'CtrlEnter': CtrlEnter,
+    'CtrlUp': ()=>{nextSent(-1)}, // CtrlUp, // 處理函式若需要用到參數，可以採用此寫法。
+    'CtrlDown': nextSent, // CtrlDown,
+    'Esc': cancelModification, // Esc,
 }
-
 function Alt1(){
     // 分句
     if (!document.body.innerHTML.match(/<\/sent>/)) {
@@ -177,7 +144,7 @@ function AltShift$() {
     });
 }
 /*
-function AltArrowUp(){
+function AltUp(){
     // 切換原文、譯文
     switchTranslation();
 }
@@ -195,13 +162,13 @@ function CtrlEnter(){
     }
 }
 /*
-function Escape(){
+function Esc(){
     cancelModification();
 }
-function CtrlArrowUp(){
+function CtrlUp(){
     nextSent(-1);
 }
-function CtrlArrowDown(){
+function CtrlDown(){
     nextSent();
 }
 */

@@ -1,11 +1,20 @@
 window.addEventListener('DOMContentLoaded', ()=> {
 
-    // 向 content-script 索取快速鍵相關資訊
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {cmd: 'get_hotkeys_desc', data: {}}, (hotkeys_desc) => {
-            showHotkeyDescOnPopup(hotkeys_desc)
-        });
-    });
+    // 呈現快速鍵相關資訊
+    chrome.commands.getAll().then(hotkey_list=>{
+        if (hotkey_list) {
+            var ul=document.querySelector('ul#hotkey_desc')
+            ul.innerHTML = ''   // 先清除原來的內容。。。
+            hotkey_list.forEach(item=>{
+                ul.innerHTML += `<li>【${item.name}】：${item.description}</li>`
+            })
+        }
+    })
+
+    // 點擊【自定義快速鍵】按鍵的話...
+    document.querySelector("a#customize_hotkey").onclick = e =>{
+        chrome.tabs.create({url: "chrome://extensions/configureCommands"});
+    }
 
     // 在彈出頁面上顯示 API_KEY 資訊
     showAPI_KEYOnPopup()
@@ -29,16 +38,6 @@ window.addEventListener('DOMContentLoaded', ()=> {
         chrome.storage.local.remove('api_key', showAPI_KEYOnPopup);
     }
 })
-
-function showHotkeyDescOnPopup(hotkeys_desc) {
-    if (hotkeys_desc) {
-        var ul=document.querySelector('ul#hotkey_desc')
-        ul.innerHTML = ''   // 先清除原來的內容。。。
-        hotkeys_desc.forEach(item=>{
-            ul.innerHTML += "<li>" + item + "</li>"
-        })
-    }
-}
 
 function showAPI_KEYOnPopup() {
     chrome.storage.local.get('api_key', r => {
