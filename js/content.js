@@ -13,6 +13,15 @@ $(document).ready((e)=>{
 })
 */
 
+window.addEventListener('load', (e)=>{
+    
+    // 【句子面板】與【單詞面板】
+    sent_panel = createPanel("bt_sent_panel", "bottom", false)
+    token_panel = createPanel("bt_token_panel", "right", false)
+
+})
+
+
 // 回應【背景服務】或【彈出頁面】送過來的請求
 chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     if (message.cmd == 'tran_sent_html') {
@@ -47,7 +56,7 @@ document.onkeydown = (e) =>{
     var hotkey_cmd = ((e.ctrlKey)?'Ctrl':'')
                     + ((e.altKey)?'Alt':'')
                     + ((e.shiftKey)?'Shift':'')
-                    + e.key.replace('Arrow','').replace('Escape','Esc');
+                    + ((e.key)?e.key.replace('Arrow','').replace('Escape','Esc'):'');
 
     if (hotkey_cmd in hotkey_handlers) {
         if (typeof hotkey_handlers[hotkey_cmd] == 'function') {
@@ -63,6 +72,7 @@ hotkey_handlers = {
     'Alt1':  Alt1,
     'Alt2': Alt2,
     'Alt3': Alt3,
+    'Alt9': Alt9,
     'AltShift$': AltShift$,
     'AltUp': switchTranslation, // AltUp,
     'CtrlEnter': CtrlEnter,
@@ -127,6 +137,10 @@ function Alt3(){
     upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
 
     console.log("Alt+3: 翻譯後各句備份、title 設定完成。\r\n提醒一下！接下來請關閉 Google 翻譯。")
+}
+function Alt9(){
+    togglePanel('bt_sent_panel')
+    togglePanel('bt_token_panel')
 }
 function AltShift$() {
     // console.log("一鍵翻譯")

@@ -5,11 +5,15 @@
     "description": "更好的翻譯外掛工具。",
     "content_scripts": [ {
         "matches": ["<all_urls>"],
-        "css": ["css/content.css"],
+        "css": [
+            "css/content.css",
+            "css/panels.css"
+        ],
         "js": [
             "js/storage.js",
             "js/sentTag.js",
-            "js/content.js"
+            "js/content.js",
+            "js/panels.js"
         ]
     } ],
     "action": {
@@ -38,6 +42,9 @@
         },
         "Alt3": {
             "description": "備份譯文（然後請關閉 Google 翻譯，或重新載入頁面）"
+        },
+        "Alt9": {
+            "description": "測試新功能"
         },
         "AltShift$": {
             "suggested_key": {

@@ -1,0 +1,49 @@
+/*  面板  */
+div.bt_panel {
+    position: fixed;
+    overflow: auto;
+    display: block;
+}
+
+/*  上面板  */
+div.bt_panel.top {
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+/*  下面板  */
+div.bt_panel.bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+/*  左面板  */
+div.bt_panel.left {
+    left: 0;
+    top: 0;
+    height: 100%;
+}
+
+/*  右面板  */
+div.bt_panel.right {
+    right: 0;
+    top: 0;
+    height: 100%;
+}
+
+/*  句子面板  */
+div#bt_sent_panel {
+    z-index: 99999;
+    background-color: #eee;
+    font-size: 10pt;
+    text-indent: 0;
+}
+
+/*  詞語面板  */
+div#bt_token_panel {
+    z-index: 9999;
+    background-color: #ddd;
+    font-size: 10pt;
+}
