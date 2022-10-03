@@ -3,7 +3,7 @@
 想藉由自己逐步開發的翻譯平台工具，進行網頁翻譯工作。
 
 這是 2022 年 9 月我參加 iT 邦鐵人賽的專案。
-有興趣的話，請前往 [鐵人賽專區](https://ithelp.ithome.com.tw/users/20115241/ironman/5205?page=1) 就能看到詳細的開發過程喲 ^_^
+有興趣的話，請前往 [鐵人賽專區](https://ithelp.ithome.com.tw/users/20115241/ironman/5205?page=1) 就能看到相關的文章喲 ^_^
 
 ## 安裝
 
