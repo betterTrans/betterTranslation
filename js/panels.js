@@ -65,7 +65,7 @@ function slideInPanel(id, duration = '300ms', overlay = false) {
             } else if (panel.classList.contains('bottom')) {
                 // document.body.style['margin-bottom'] = (panel.offsetHeight+10)+'px';    // 面板滑入後，margin 調為 (size+10) px
                 // margin 不一定有用，既然 edit_div 一定是 body 最後一個 div，就用它的 height 來設定更有效
-                document.querySelector("#bt_panels").style.height = (panel.offsetHeight + 10) + 'px';    // 面板滑入後，下方 #edit_div 的 height 調為 (size+10) px
+                document.querySelector("#bt_panels").style.height = (panel.offsetHeight + 50) + 'px';    // 面板滑入後，下方 #edit_div 的 height 調為 (size+10) px
             } else if (panel.classList.contains('left')) {
                 document.body.style['margin-left'] = (panel.offsetWidth + 10) + 'px';    // 面板滑入後，margin 調為 (size+10) px
             }

@@ -10,6 +10,7 @@
             "css/panels.css"
         ],
         "js": [
+            "js/vue.global.min.js",
             "js/storage.js",
             "js/sentTag.js",
             "js/content.js",
@@ -62,7 +63,7 @@
             "description": "完成譯句編輯、切換到上一句"
         },
         "CtrlDown": {
-            "description": "完成譯句編輯、切換到上一句"
+            "description": "完成譯句編輯、切換到下一句"
         },
         "Esc": {
             "description": "放棄修改，退出編輯界面"

@@ -6,6 +6,7 @@ var orig_htmls = {}
 var tran_htmls = {}
 var translated = false
 var path = window.location.pathname + window.location.search
+var vm = null
 
 /*
 $(document).ready((e)=>{
@@ -16,9 +17,9 @@ $(document).ready((e)=>{
 window.addEventListener('load', (e)=>{
     
     // 【句子面板】與【單詞面板】
-    sent_panel = createPanel("bt_sent_panel", "bottom", false)
+    sent_panel = createPanel("bt_sent_panel", "bottom", false, 'auto')
     token_panel = createPanel("bt_token_panel", "right", false)
-
+    
 })
 
 
@@ -205,6 +206,9 @@ function switchToModification(node) {
     textarea.cols = prev_len
     textarea.style.height = `${textarea.scrollHeight}px`
     textarea.focus()
+
+    showOrigInSentPanel(node);
+    slideInPanel('bt_sent_panel')
 }
 
 function confirmModification() {
@@ -227,6 +231,8 @@ function confirmModification() {
         }
     }
 
+    slideOutPanel('bt_sent_panel')
+
     return prev_sent_id
 }
 
@@ -244,6 +250,8 @@ function cancelModification() {
             upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)
         }
     }
+
+    slideOutPanel('bt_sent_panel')
 
     return prev_sent_id
 }
@@ -350,5 +358,47 @@ function switchTranslation() {
             node.onmouseleave = e => e.target.classList.remove('active');
         });
         // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
+    }
+}
+
+function showOrigInSentPanel(node) {
+    app_div = document.querySelector("#bt_sent_panel div#app")
+    if (!app_div) {
+        app_div = document.createElement('div')
+        app_div.id = 'app'
+    
+        document.querySelector("#bt_sent_panel").append(app_div)
+    }
+
+    if (vm) {
+        vm.$data.sent_id = node.id
+    }
+    else {
+        vm = Vue.createApp({
+            data () {
+                return {
+                    sent_id: node.id,
+                    orig_htmls: orig_htmls,
+                    orig_texts: orig_texts,
+                    tran_htmls: tran_htmls,
+                    tran_texts: tran_texts
+                }
+            },
+            computed: {
+                sent_index: function () {
+                    return parseInt(this.sent_id.replace('sent_',''))
+                }
+            },
+            render() {
+                return Vue.h('div', {
+                    id: "app",
+                    style: { 'margin': '20px', },
+                }, [
+                    this.orig_texts[this.sent_index]
+                ])
+            }
+            //template: '<div id="app">{{this.orig_texts[this.sent_index]}}</div>'
+            //template: '<div id="app">123</div>'
+        }).mount(app_div);
     }
 }
