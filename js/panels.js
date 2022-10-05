@@ -120,3 +120,51 @@ function togglePanel(id) {
         }
     }
 }
+
+var vm = null
+function showInSentPanel(data) {
+    app_div = document.querySelector("#bt_sent_panel div#app")
+    if (!app_div) {
+        app_div = document.createElement('div')
+        app_div.id = 'app'
+
+        document.querySelector("#bt_sent_panel").append(app_div)
+    }
+
+    sent_id =  data.node?data.node.id:0
+    orig_htmls =  data.orig_htmls?data.orig_htmls:{}
+    orig_texts =  data.orig_texts?data.orig_texts:{}
+    tran_htmls =  data.tran_htmls?data.tran_htmls:[]
+    tran_texts =  data.tran_texts?data.tran_texts:[]
+
+    if (vm) {
+        vm.$data.sent_id = sent_id
+    }
+    else {
+        vm = Vue.createApp({
+            data () {
+                return {
+                    sent_id: sent_id,
+                    orig_htmls: orig_htmls,
+                    orig_texts: orig_texts,
+                    tran_htmls: tran_htmls,
+                    tran_texts: tran_texts
+                }
+            },
+            computed: {
+                sent_index: function () {
+                    return parseInt(this.sent_id.replace('sent_',''))
+                }
+            },
+            render() {
+                return Vue.h('div', {
+                    id: "app",
+                    style: { 'margin': '20px', },
+                }, [
+                    this.orig_texts[this.sent_index]
+                ])
+            }
+            //template: '<div id="app">{{orig_texts[sent_index]}}</div>'
+        }).mount(app_div);
+    }
+}
