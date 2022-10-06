@@ -386,8 +386,8 @@ function speak(msg) {
     // synth 是全域變數，會耗時，不過等到執行這個函式時，應該已經執行完畢了
     var voices = synth.getVoices();
     var msgToSpeak = new SpeechSynthesisUtterance();
-    msgToSpeak.voice = voices[12];  // Google US English
-    // msgToSpeak.voice = voices[29];  // Google 台灣國語
+    msgToSpeak.voice = voices.find(voice=>voice.name==='Google US English');
+    // msgToSpeak.voice = voices.find(voice=>voice.name==='Google 國語（臺灣）');
     msgToSpeak.text = msg;
     synth.speak(msgToSpeak);
 }

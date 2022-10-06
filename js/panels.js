@@ -213,41 +213,47 @@ function showDict4Token(dictResult) {
     var el = new DOMParser().parseFromString(result, "text/html").body;    // html 會用 html、head、body 打包起來。        
 
     var search_result = el.querySelector('ol.searchCenterMiddle');
-    var exp = search_result.querySelector('div.p-rel');
+    if (search_result) {
+        var exp = search_result.querySelector('div.p-rel');
 
-    exp.querySelectorAll("ul > li > p").forEach((item)=>{
-        item.style.display = 'none'
-    }); // 先把例句隱藏起來
-
-    var token_panel = document.querySelector("#bt_token_panel")
-    var dict_pane = document.querySelector("#dict_result")
-    if (!dict_pane) {
-
-        div1 = document.createElement('div')
-        div1.id = 'voc_pos'
-        div1.innderHTML = '單字+詞性'
-        token_panel.append(div1);
-        div2 = document.createElement('div')
-        div2.id = 'dict_result'
-        div2.innderHTML = '自己查單字'
-        token_panel.append(div2);
-
+        if (exp) {
+            exp.querySelectorAll("ul > li > p").forEach((item)=>{
+                item.style.display = 'none'
+            }); // 先把例句隱藏起來
+        }
     }
 
-    document.querySelector("#voc_pos").innerHTML = `
-        <h3>【<span>${query_str}</span>】
-          <input id="play_audio" type="button" value="唸一下">
-        </h3>`;
-    document.querySelector("#play_audio").onclick = () => {
-        speak(query_str);
-    };
+    var token_panel = document.querySelector("#bt_token_panel")
+    if (token_panel) {
+        var dict_pane = document.querySelector("#dict_result")
+        if (!dict_pane) {
 
-    document.querySelector("#dict_result").innerHTML = exp.innerHTML;
+            div1 = document.createElement('div')
+            div1.id = 'voc_pos'
+            div1.innderHTML = '單字+詞性'
+            token_panel.append(div1);
+            div2 = document.createElement('div')
+            div2.id = 'dict_result'
+            div2.innderHTML = '自己查單字'
+            token_panel.append(div2);
 
-    /*
-    // 設定例句切換顯示
-    document.querySelector("#dict_result").find('li').click(function () {
-        $(this).find('h4 ~ span').toggle('300', "swing");
-    });
-    */
+        }
+
+        document.querySelector("#voc_pos").innerHTML = `
+            <h3>【<span>${query_str}</span>】
+            <input id="play_audio" type="button" value="唸一下">
+            </h3>`;
+        document.querySelector("#play_audio").onclick = () => {
+            speak(query_str);
+        };
+
+        document.querySelector("#dict_result").innerHTML = exp.innerHTML;
+
+        /*
+        // 設定例句切換顯示
+        document.querySelector("#dict_result").find('li').click(function () {
+            $(this).find('h4 ~ span').toggle('300', "swing");
+        });
+        */
+    }
 }
