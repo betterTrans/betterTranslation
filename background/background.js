@@ -29,6 +29,20 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             }
         });
     }
+    else if (message.cmd == "dict_search") {
+        if ("query_str" in message.data) {
+            // 把單詞送出去查詢詞義
+            url = "https://tw.dictionary.search.yahoo.com/search?q="+encodeURIComponent(message.data.query_str);
+            fetch(url)
+            .then(r=>r.text())
+            .then((response) => {
+                console.log(response)
+                chrome.tabs.sendMessage(sender.tab.id, {cmd: 'dict_search_result', data: {
+                    response: response,
+                }});
+            });
+        }
+    }
 });
 
 chrome.commands.onCommand.addListener((command) => {

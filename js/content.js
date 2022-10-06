@@ -49,6 +49,10 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             hotkey_handlers[message.cmd]();
         }
     }
+    else if (message.cmd == 'dict_search_result') {
+        // 發出【外查字典】dict_search 的請求後，如果收到查詢結果，就用 vue 把查詢結果呈現出來
+        showDict4Token(message.data);
+    }
 });
 
 document.onkeydown = (e) =>{
@@ -296,6 +300,8 @@ function nextSent(nth = 1) {
         }
     }
 
+    slideOutPanel('bt_token_panel')
+
     return new_sent_id
 }
 
@@ -364,4 +370,24 @@ function switchTranslation() {
         });
         // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
     }
+}
+
+// 到外部去查詢，再用 onMessage 的 'dict_search_result' 收取結果，再進行後續處理
+function dictSearch(query_str) {
+    chrome.runtime.sendMessage({
+        cmd: 'dict_search', data: {
+            query_str: query_str,
+        }
+    });
+}
+
+const synth = window.speechSynthesis; // 語言控制器，載入需要耗時，所以先在這裡載入
+function speak(msg) {
+    // synth 是全域變數，會耗時，不過等到執行這個函式時，應該已經執行完畢了
+    var voices = synth.getVoices();
+    var msgToSpeak = new SpeechSynthesisUtterance();
+    msgToSpeak.voice = voices[12];  // Google US English
+    // msgToSpeak.voice = voices[29];  // Google 台灣國語
+    msgToSpeak.text = msg;
+    synth.speak(msgToSpeak);
 }

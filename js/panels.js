@@ -123,7 +123,7 @@ function togglePanel(id) {
 
 var vm = null
 function showInSentPanel(data) {
-    app_div = document.querySelector("#bt_sent_panel div#app")
+    app_div = document.querySelector("#app")
     if (!app_div) {
         app_div = document.createElement('div')
         app_div.id = 'app'
@@ -141,7 +141,7 @@ function showInSentPanel(data) {
         vm.$data.sent_id = sent_id
     }
     else {
-        vm = Vue.createApp({
+        vm = new Vue({
             data () {
                 return {
                     sent_id: sent_id,
@@ -154,17 +154,100 @@ function showInSentPanel(data) {
             computed: {
                 sent_index: function () {
                     return parseInt(this.sent_id.replace('sent_',''))
+                },
+                sent_text: function () {
+                    return this.orig_texts[this.sent_index]
+                },
+                tokens: function () {
+                    split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:])/g, '$1 $2')
+                    return split_symbol.split(' ')
                 }
             },
-            render() {
-                return Vue.h('div', {
-                    id: "app",
-                    style: { 'margin': '20px', },
-                }, [
-                    this.orig_texts[this.sent_index]
-                ])
+            methods: {
+                activate: function (e) {
+                    e.target.classList.add('active');
+                },
+                deactivate: function (e) {
+                    e.target.classList.remove('active');
+                },
+                tokenClicked: function (e) {
+                    //this.$EventBus.$emit('token-clicked', this.token);
+                    slideInPanel('bt_token_panel')
+                    token_panel = document.querySelector('#bt_token_panel')
+                    token_panel.innerHTML = `<h2 style="text-align: center;">${e.target.innerText}</h2>`
+                },
+                dict_search: function (e) {
+                    query_str = e.target.innerText;
+
+                    if (query_str.length > 0) {
+                        dictSearch(query_str)
+                    }
+                },
+            },
+            render(h) {
+                return h('div', {
+                        id: "orig_sent",
+                        style: { 'margin': '20px', },
+                    },
+                    // [this.sent_text]
+                    this.tokens.map(token => Vue.h('span', {
+                        style: {'margin': '2px'},
+                        on: {
+                            mouseover: this.activate,
+                            mouseout: this.deactivate,
+                            click: this.tokenClicked,
+                            dblclick: this.dict_search,
+                        },
+                    }, token))
+                )
             }
-            //template: '<div id="app">{{orig_texts[sent_index]}}</div>'
-        }).mount(app_div);
+        })
+        vm.$mount(app_div);
     }
+}
+
+// 顯示外部查詢字典的結果
+function showDict4Token(dictResult) {
+    var result = dictResult.response;
+
+    var el = new DOMParser().parseFromString(result, "text/html").body;    // html 會用 html、head、body 打包起來。        
+
+    var search_result = el.querySelector('ol.searchCenterMiddle');
+    var exp = search_result.querySelector('div.p-rel');
+
+    exp.querySelectorAll("ul > li > p").forEach((item)=>{
+        item.style.display = 'none'
+    }); // 先把例句隱藏起來
+
+    var token_panel = document.querySelector("#bt_token_panel")
+    var dict_pane = document.querySelector("#dict_result")
+    if (!dict_pane) {
+
+        div1 = document.createElement('div')
+        div1.id = 'voc_pos'
+        div1.innderHTML = '單字+詞性'
+        token_panel.append(div1);
+        div2 = document.createElement('div')
+        div2.id = 'dict_result'
+        div2.innderHTML = '自己查單字'
+        token_panel.append(div2);
+
+    }
+
+    document.querySelector("#voc_pos").innerHTML = `
+        <h3>【<span>${query_str}</span>】
+          <input id="play_audio" type="button" value="唸一下">
+        </h3>`;
+    document.querySelector("#play_audio").onclick = () => {
+        speak(query_str);
+    };
+
+    document.querySelector("#dict_result").innerHTML = exp.innerHTML;
+
+    /*
+    // 設定例句切換顯示
+    document.querySelector("#dict_result").find('li').click(function () {
+        $(this).find('h4 ~ span').toggle('300', "swing");
+    });
+    */
 }
