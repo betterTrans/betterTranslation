@@ -131,75 +131,46 @@ function showInSentPanel(data) {
         document.querySelector("#bt_sent_panel").append(app_div)
     }
 
-    sent_id =  data.node?data.node.id:0
-    orig_htmls =  data.orig_htmls?data.orig_htmls:{}
-    orig_texts =  data.orig_texts?data.orig_texts:{}
-    tran_htmls =  data.tran_htmls?data.tran_htmls:[]
-    tran_texts =  data.tran_texts?data.tran_texts:[]
-
     if (vm) {
-        vm.$data.sent_id = sent_id
+        vm.$data.sent_id = data.node?data.node.id:'sent_0'
     }
     else {
         vm = new Vue({
             data () {
                 return {
-                    sent_id: sent_id,
-                    orig_htmls: orig_htmls,
-                    orig_texts: orig_texts,
-                    tran_htmls: tran_htmls,
-                    tran_texts: tran_texts
+                    sent_id: data.node?data.node.id:'sent_0',
+                    orig_htmls: data.orig_htmls?data.orig_htmls:{},
+                    orig_texts: data.orig_texts?data.orig_texts:{},
+                    tran_htmls: data.tran_htmls?data.tran_htmls:{},
+                    tran_texts: data.tran_texts?data.tran_texts:{}
                 }
             },
-            computed: {
-                sent_index: function () {
-                    return parseInt(this.sent_id.replace('sent_',''))
-                },
-                sent_text: function () {
-                    return this.orig_texts[this.sent_index]
-                },
-                tokens: function () {
-                    split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:])/g, '$1 $2')
-                    return split_symbol.split(' ')
-                }
-            },
-            methods: {
-                activate: function (e) {
-                    e.target.classList.add('active');
-                },
-                deactivate: function (e) {
-                    e.target.classList.remove('active');
-                },
-                tokenClicked: function (e) {
-                    //this.$EventBus.$emit('token-clicked', this.token);
-                    slideInPanel('bt_token_panel')
-                    token_panel = document.querySelector('#bt_token_panel')
-                    token_panel.innerHTML = `<h2 style="text-align: center;">${e.target.innerText}</h2>`
-                },
-                dict_search: function (e) {
-                    query_str = e.target.innerText;
-
-                    if (query_str.length > 0) {
-                        dictSearch(query_str)
-                    }
-                },
-            },
+            /*
+            template: `
+            <div id="app">
+                <orig_sent
+                    :prop_sent_id="sent_id"
+                    :prop_orig_htmls="orig_htmls"
+                    :prop_orig_texts="orig_texts"
+                    :prop_tran_htmls="tran_htmls"
+                    :prop_tran_texts="tran_texts"
+                ></orig_sent>
+            </div>`
+            */
             render(h) {
                 return h('div', {
-                        id: "orig_sent",
-                        style: { 'margin': '20px', },
-                    },
-                    // [this.sent_text]
-                    this.tokens.map(token => Vue.h('span', {
-                        style: {'margin': '2px'},
-                        on: {
-                            mouseover: this.activate,
-                            mouseout: this.deactivate,
-                            click: this.tokenClicked,
-                            dblclick: this.dict_search,
-                        },
-                    }, token))
-                )
+                    attrs: { id: "app" }
+                }, [
+                    h('orig_sent',{
+                        props: {
+                            sent_id: this.sent_id,
+                            orig_htmls: this.orig_htmls,
+                            orig_texts: this.orig_texts,
+                            tran_htmls: this.tran_htmls,
+                            tran_texts: this.tran_texts,
+                        }
+                    })
+                ])
             }
         })
         vm.$mount(app_div);
