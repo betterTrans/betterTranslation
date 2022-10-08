@@ -1,3 +1,7 @@
+
+var eventBus = new Vue(); 
+Vue.prototype.$EventBus = eventBus;
+
 //=============================================
 // Vue component 組件（props in, event out!）
 //=============================================
@@ -148,9 +152,7 @@ Vue.component('orig_token', {
             e.target.classList.remove('active');
         },
         tokenClicked: function (e) {
-            //this.$EventBus.$emit('token-clicked', this.token);
-            //var token_panel = createPanel("bt_token_panel", "right", false)
-            //token_panel.innerHTML = `<h2 style="text-align: center;">${e.target.innerText}</h2>`
+            this.$EventBus.$emit('token-clicked', this.token);
             slideInPanel('bt_token_panel')
         },
         dict_search: function (e) {
@@ -193,6 +195,17 @@ Vue.component('bt_token_panel', {
         'tran_htmls',
         'tran_texts'
     ],
+    data () {
+        return {
+            my_active_token: this.active_token,
+        }
+    },
+    created: function () {
+        let self = this; 
+        this.$EventBus.$on("token-clicked", function (token) { 
+          self.my_active_token = token; 
+        }); 
+    },    
     /*
     template: `
     <div id="bt_token_panel" class="bt_ponel right">
@@ -210,12 +223,12 @@ Vue.component('bt_token_panel', {
         [
             h('active_token', {
                 props: {
-                    active_token: this.active_token,
+                    active_token: this.my_active_token,
                 }
-            }, [this.active_token]),
+            }, [this.my_active_token]),
             h('dict_pane', {
                 props: {
-                    active_token: this.active_token,
+                    active_token: this.my_active_token,
                 }
             }, [])
         ])
