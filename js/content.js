@@ -15,10 +15,6 @@ $(document).ready((e)=>{
 
 window.addEventListener('load', (e)=>{
     
-    // 【句子面板】與【單詞面板】
-    sent_panel = createPanel("bt_sent_panel", "bottom", false, 'auto')
-    token_panel = createPanel("bt_token_panel", "right", false)
-    
 })
 
 
@@ -210,8 +206,9 @@ function switchToModification(node) {
     textarea.style.height = `${textarea.scrollHeight}px`
     textarea.focus()
 
-    showInSentPanel({
+    setPanels({
         node: node,
+        active_token: '',
         orig_htmls: orig_htmls,
         orig_texts: orig_texts,
         tran_htmls: tran_htmls,

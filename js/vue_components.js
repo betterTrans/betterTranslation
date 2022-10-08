@@ -1,15 +1,105 @@
 //=============================================
-// Vue component 組件
+// Vue component 組件（props in, event out!）
 //=============================================
+
+// 主面板
+Vue.component('bt_panels', {
+    props: [
+        'sent_id',
+        'active_token',
+        'orig_htmls',
+        'orig_texts',
+        'tran_htmls',
+        'tran_texts'
+    ],
+    /*
+    template: `
+    <div id="bt_panels">
+        <bt_sent_panel
+            :sent_id="sent_id"
+            :orig_htmls="orig_htmls"
+            :orig_texts="orig_texts"
+            :tran_htmls="tran_htmls"
+            :tran_texts="tran_texts"
+        ></bt_sent_panel>
+        <bt_token_panel
+            :active_token="active_token"
+            :orig_htmls="orig_htmls"
+            :orig_texts="orig_texts"
+            :tran_htmls="tran_htmls"
+            :tran_texts="tran_texts"
+        ></bt_token_panel>
+    </div>`
+    */
+    render(h) {
+        return h('div', {
+            attrs: {id: "bt_panels", },
+        },
+        [
+            h('bt_sent_panel', {
+                props: {
+                    sent_id: this.sent_id,
+                    active_token: this.active_token,
+                    orig_htmls: this.orig_htmls,
+                    orig_texts: this.orig_texts,
+                    tran_htmls: this.tran_htmls,
+                    tran_texts: this.tran_texts,
+                }
+            }, []),
+            h('bt_token_panel', {
+                props: {
+                    sent_id: this.sent_id,
+                    active_token: this.active_token,
+                    orig_htmls: this.orig_htmls,
+                    orig_texts: this.orig_texts,
+                    tran_htmls: this.tran_htmls,
+                    tran_texts: this.tran_texts,
+                }
+            }, [])
+        ])
+    }
+});
+
+// 句子面板
+Vue.component('bt_sent_panel', {
+    props: [
+        'sent_id',
+        'active_token',
+        'orig_htmls',
+        'orig_texts',
+        'tran_htmls',
+        'tran_texts'
+    ],
+    /*
+    template: `
+    <div id="bt_sent_panel" class="bt_ponel ">
+        <orig_sent
+            :sent_id="sent_id"
+            :orig_texts="orig_texts"
+        ></orig_sent>
+    </div>`
+    */
+    render(h) {
+        return h('div', {
+            class: ['bt_panel', 'bottom'],
+            attrs: {id: "bt_sent_panel", },
+        },
+        [
+            h('orig_sent', {
+                props: {
+                    sent_id: this.sent_id,
+                    orig_texts: this.orig_texts,
+                }
+            }, [])
+        ])
+    }
+});
 
 // 原文句
 Vue.component('orig_sent', {
     props: [
         'sent_id',
-        'orig_htmls',
         'orig_texts',
-        'tran_htmls',
-        'tran_texts'
     ],
     computed: {
         sent_index: function () {
@@ -33,7 +123,7 @@ Vue.component('orig_sent', {
     /**/
     render(h) {
         return h('div', {
-                id: "orig_sent",
+                attrs: {id: "orig_sent", },
                 style: { 'margin': '20px', },
             },
             this.tokens.map(token => h('orig_token', {
@@ -59,9 +149,9 @@ Vue.component('orig_token', {
         },
         tokenClicked: function (e) {
             //this.$EventBus.$emit('token-clicked', this.token);
+            //var token_panel = createPanel("bt_token_panel", "right", false)
+            //token_panel.innerHTML = `<h2 style="text-align: center;">${e.target.innerText}</h2>`
             slideInPanel('bt_token_panel')
-            token_panel = document.querySelector('#bt_token_panel')
-            token_panel.innerHTML = `<h2 style="text-align: center;">${e.target.innerText}</h2>`
         },
         dict_search: function (e) {
             query_str = e.target.innerText;
@@ -90,5 +180,103 @@ Vue.component('orig_token', {
                 dblclick: this.dict_search,
             },
         }, this.token)
+    }
+});
+
+// 詞語面板
+Vue.component('bt_token_panel', {
+    props: [
+        'sent_id',
+        'active_token',
+        'orig_htmls',
+        'orig_texts',
+        'tran_htmls',
+        'tran_texts'
+    ],
+    /*
+    template: `
+    <div id="bt_token_panel" class="bt_ponel right">
+        <active_token></active_token>
+        <dict_pane></dict_pane>
+    </div>
+    `
+    */
+    render(h) {
+        return h('div', {
+            class: ['bt_panel', 'right'],
+            attrs: {id: "bt_token_panel", },
+            style: {'width': '300px'}
+        },
+        [
+            h('active_token', {
+                props: {
+                    active_token: this.active_token,
+                }
+            }, [this.active_token]),
+            h('dict_pane', {
+                props: {
+                    active_token: this.active_token,
+                }
+            }, [])
+        ])
+    }
+});
+
+// 所選中詞語
+Vue.component('active_token', {
+    props: [
+        'active_token'
+    ],
+    methods: {
+        play_audio: function(e) {
+            speak(this.active_token)
+        },
+    },
+    /*
+    template=: `
+    <div id="voc_pos">
+        <h2 style="text-align: center;">{{active_token}}
+            <input id="play_audio" type="button" value="唸一下"
+                v-on:clcik="play_audio" />
+        </h2>
+    </div>`
+    */
+    render(h) {
+        return h('div', {
+            attrs: {id: "voc_pos", },
+        },
+        [
+            h('h2', {
+                style: {'text-align': 'center'}
+            }, [
+                this.active_token,
+                h('input', {
+                    attrs: {
+                        id: "play_audio",
+                        type: "button",
+                        value: "唸一下",
+                    },
+                    on: {
+                        click: this.play_audio,
+                    },
+                }),
+            ]),
+        ])
+    }
+});
+
+// 字典區塊
+Vue.component('dict_pane', {
+    props: [
+        'active_token'
+    ],
+    /*
+    template=: `
+    <div id="dict_result">自己查單字</div>`
+    */
+    render(h) {
+        return h('div', {
+            attrs: {id: "dict_result", },
+        }, '自己查單字')
     }
 });

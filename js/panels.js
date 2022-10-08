@@ -1,48 +1,6 @@
 //==================================
 // Panel 面板相關函式
 //==================================
-function createPanel(id, position = 'bottom', display=true, size = '300px', background_color = '', z_index = 0, opacity = 0) {
-
-    // 面板主區塊
-    var panels = document.querySelector("div#bt_panels")
-    // 檢查有沒有主面板，沒有就建立之
-    if (!panels) {
-        panels = document.createElement("div");
-        panels.id = "bt_panels"
-        document.body.append(panels)
-    }
-
-    var panel = panels.querySelector("div#" + id)
-    // 檢查有沒有這個子面板，沒有就建立之
-    if (!panel) {
-
-        panel = document.createElement("div");
-        panel.id = id;
-        panel.classList.add('bt_panel')
-
-        // 只要根據 position 設定好 class，就會自動擺放到正確位置
-        panel.classList.add(position)
-        // 根據 size 設定面板大小
-        if (position === 'left' || position === 'right') {
-            panel.style.width =  size;
-        }
-        else if (position === 'top' || position === 'bottom') {
-            panel.style.height = size;
-        }
-
-        // 其他設定：背景顏色、層高度、捲軸、透明度、
-        if (background_color) panel.style['background-color'] = background_color;
-        if (z_index) panel.style['z-index'] = z_index;
-        if (opacity) panel.style.opacity = opacity;
-
-        panels.appendChild(panel);
-
-    }
-
-    if (!display) slideOutPanel(id, '0ms')  // 預設先滑出面板
-
-    return panel
-}
 
 function slideInPanel(id, duration = '300ms', overlay = false) {
     var panel = document.querySelector("div#" + id);
@@ -121,24 +79,17 @@ function togglePanel(id) {
     }
 }
 
-var vm = null
-function showInSentPanel(data) {
-    app_div = document.querySelector("#app")
-    if (!app_div) {
-        app_div = document.createElement('div')
-        app_div.id = 'app'
-
-        document.querySelector("#bt_sent_panel").append(app_div)
-    }
-
-    if (vm) {
-        vm.$data.sent_id = data.node?data.node.id:'sent_0'
+var panels = null
+function setPanels(data) {
+    if (panels) {
+        panels.$data.sent_id = data.node?data.node.id:'sent_0'
     }
     else {
-        vm = new Vue({
+        panels = new Vue({
             data () {
                 return {
                     sent_id: data.node?data.node.id:'sent_0',
+                    active_token: data.active_token?data.active_token:'book',
                     orig_htmls: data.orig_htmls?data.orig_htmls:{},
                     orig_texts: data.orig_texts?data.orig_texts:{},
                     tran_htmls: data.tran_htmls?data.tran_htmls:{},
@@ -147,34 +98,41 @@ function showInSentPanel(data) {
             },
             /*
             template: `
-            <div id="app">
-                <orig_sent
-                    :prop_sent_id="sent_id"
-                    :prop_orig_htmls="orig_htmls"
-                    :prop_orig_texts="orig_texts"
-                    :prop_tran_htmls="tran_htmls"
-                    :prop_tran_texts="tran_texts"
-                ></orig_sent>
-            </div>`
+            <bt_panels
+                :prop_sent_id="sent_id"
+                :active_token="active_token"
+                :prop_orig_htmls="orig_htmls"
+                :prop_orig_texts="orig_texts"
+                :prop_tran_htmls="tran_htmls"
+                :prop_tran_texts="tran_texts"
+            ></bt_panels>`
             */
             render(h) {
-                return h('div', {
-                    attrs: { id: "app" }
-                }, [
-                    h('orig_sent',{
-                        props: {
-                            sent_id: this.sent_id,
-                            orig_htmls: this.orig_htmls,
-                            orig_texts: this.orig_texts,
-                            tran_htmls: this.tran_htmls,
-                            tran_texts: this.tran_texts,
-                        }
-                    })
-                ])
+                return h('bt_panels', {
+                    props: {
+                        sent_id: this.sent_id,
+                        active_token: this.active_token,
+                        orig_htmls: this.orig_htmls,
+                        orig_texts: this.orig_texts,
+                        tran_htmls: this.tran_htmls,
+                        tran_texts: this.tran_texts,
+                    }
+                })
             }
         })
-        vm.$mount(app_div);
+
+        // 面板主區塊
+        var panels_div = document.querySelector("div#bt_panels")
+        // 檢查有沒有主面板，沒有就建立之
+        if (!panels_div) {
+            panels_div = document.createElement("div");
+            panels_div.id = "bt_panels"
+            document.body.append(panels_div)
+        }
+        panels.$mount(panels_div);
     }
+
+    return panels
 }
 
 // 顯示外部查詢字典的結果
@@ -194,37 +152,12 @@ function showDict4Token(dictResult) {
         }
     }
 
-    var token_panel = document.querySelector("#bt_token_panel")
-    if (token_panel) {
-        var dict_pane = document.querySelector("#dict_result")
-        if (!dict_pane) {
+    document.querySelector("#dict_result").innerHTML = exp.innerHTML;
 
-            div1 = document.createElement('div')
-            div1.id = 'voc_pos'
-            div1.innderHTML = '單字+詞性'
-            token_panel.append(div1);
-            div2 = document.createElement('div')
-            div2.id = 'dict_result'
-            div2.innderHTML = '自己查單字'
-            token_panel.append(div2);
-
-        }
-
-        document.querySelector("#voc_pos").innerHTML = `
-            <h3>【<span>${query_str}</span>】
-            <input id="play_audio" type="button" value="唸一下">
-            </h3>`;
-        document.querySelector("#play_audio").onclick = () => {
-            speak(query_str);
-        };
-
-        document.querySelector("#dict_result").innerHTML = exp.innerHTML;
-
-        /*
-        // 設定例句切換顯示
-        document.querySelector("#dict_result").find('li').click(function () {
-            $(this).find('h4 ~ span').toggle('300', "swing");
-        });
-        */
-    }
+    /*
+    // 設定例句切換顯示
+    document.querySelector("#dict_result").find('li').click(function () {
+        $(this).find('h4 ~ span').toggle('300', "swing");
+    });
+    */
 }
