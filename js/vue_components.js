@@ -209,8 +209,15 @@ Vue.component('bt_token_panel', {
     /*
     template: `
     <div id="bt_token_panel" class="bt_ponel right">
-        <active_token></active_token>
-        <dict_pane></dict_pane>
+        <active_token
+            :active_token="active_token"
+        ></active_token>
+        <term_form
+            :active_token="active_token"
+        ></term_form>
+        <dict_pane
+            :active_token="active_token"
+        ></dict_pane>
     </div>
     `
     */
@@ -225,7 +232,12 @@ Vue.component('bt_token_panel', {
                 props: {
                     active_token: this.my_active_token,
                 }
-            }, [this.my_active_token]),
+            }),
+            h('term_form', {
+                props: {
+                    active_token: this.my_active_token,
+                }
+            }),
             h('dict_pane', {
                 props: {
                     active_token: this.my_active_token,
@@ -278,6 +290,61 @@ Vue.component('active_token', {
     }
 });
 
+// 詞語表單
+Vue.component('term_form', {
+    props: [
+        'active_token'
+    ],
+    /*
+    template: `
+        <div id="term_form">
+            <div>原文 <input id="ot_text" type="text" name="ot_text" :value="action_token"/></div>
+            <div>人譯 <input id="tt_text" type="text" name="tt_text" /></div>
+            <div>機譯 <input id="mt_text" type="text" name="mt_text" /></div>
+            <input id="term_submit" type="button" value="保存" @click="save_term" />
+            <input id="term_delete" type="button" value="刪除" @click="delete_term" />
+            <input id="implement_term_or_not" type="checkbox" name="implement_term_or_not" value="term_implemented"
+                v-model="implement_term_or_not"
+                @change="changeCheckbox" />
+            自動代入
+        </div>`
+    */
+    render(h) {
+        var self = this;
+        return h('div', {attrs: {id: "term_form"}}, [
+            h('div', ['原文 ', h('input', { attrs: {id: "ot_text", type: "text", name: "ot_text", value: this.active_token } })]),
+            h('div', ['人譯 ', h('input', { attrs: {id: "tt_text", type: "text", name: "tt_text"}})]),
+            h('div', ['機譯 ', h('input', { attrs: {id: "mt_text", type: "text", name: "mt_text"}})]),
+            h('input', {
+                attrs: {id: "implement_term_or_not", type: "checkbox", name: 'implement_term_or_not', value: "term_implemented"},
+                // 【v-model】
+                // checkbox 的 v-model 要看 change 事件，同步 checked 的值
+                /*
+                domProps: {
+                    checked: self.implement_term_or_not,   // 這相當於 v-bind：用 Vue.data 去設定 DOM 的 attr 屬性
+                },
+                on: {
+                    change: e => {
+                        self.implement_term_or_not = e.target.checked;  // 這相當於 v-model：用 DOM 的 attr 屬性去更新 Vue.data
+                        self.$emit('change', e.target.value);  // 再送個事件出去，讓別處也可以得到通知
+                        self.changeCheckbox();  // 這其實是去通知外面更新全域變數 ==》其實應該在別處接收事件通知，再進行此動作
+                    },
+                },
+                */
+            }),
+            '自動代入',
+            h('input', {
+                attrs: {id: "term_submit", type: "button", value: "保存"},
+                //on: {click: self.save_term },
+            }),
+            h('input', {
+                attrs: {id: "term_delete", type: "button", value: "刪除"},
+                //on: {click: self.delete_term },
+            })
+        ])
+    }
+});
+
 // 字典區塊
 Vue.component('dict_pane', {
     props: [
@@ -285,11 +352,11 @@ Vue.component('dict_pane', {
     ],
     /*
     template=: `
-    <div id="dict_result">自己查單字</div>`
+    <div id="dict_result">=== 滑鼠雙擊查單字 ===</div>`
     */
     render(h) {
         return h('div', {
             attrs: {id: "dict_result", },
-        }, '自己查單字')
+        }, '=== 滑鼠雙擊查單字 ===')
     }
 });
