@@ -1,12 +1,3 @@
-var body0 = null
-var body1 = null
-var orig_texts = {}
-var tran_texts = {}
-var orig_htmls = {}
-var tran_htmls = {}
-var translated = false
-var path = window.location.pathname + window.location.search
-
 /*
 $(document).ready((e)=>{
     body0 = document.body.innerHTML;
@@ -213,6 +204,7 @@ function switchToModification(node) {
         orig_texts: orig_texts,
         tran_htmls: tran_htmls,
         tran_texts: tran_texts,
+        saved_terms: saved_terms,
     });
     slideInPanel('bt_sent_panel')
 }
@@ -315,6 +307,8 @@ function switchTranslation() {
     orig_htmls = getValueByPath('orig_htmls_by_path', path, {})
     tran_texts = getValueByPath('tran_texts_by_path', path, {})
     tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
+    saved_terms = localStorage.getItem('saved_terms')
+    saved_terms = saved_terms?JSON.parse(saved_terms):{}
 
     // 套入各句內容
     translated = !translated

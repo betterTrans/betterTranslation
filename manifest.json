@@ -10,8 +10,8 @@
             "css/panels.css"
         ],
         "js": [
-            // "js/vue.global.prod.js", //Vue3
-            "js/vue.min.js", // Vue2
+            "/js/global.js",
+            "js/vue.min.js",
             "js/vue_components.js",
             "js/storage.js",
             "js/sentTag.js",

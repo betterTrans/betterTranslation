@@ -49,3 +49,9 @@ div#bt_token_panel {
     font-size: 10pt;
     box-shadow: 0px 5px 10px 0px #333;
 }
+
+/* 已儲存詞語列表 */
+div#terms_list {
+    background-color: #fff;
+    padding: 10px;
+}

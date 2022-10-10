@@ -14,8 +14,20 @@ Vue.component('bt_panels', {
         'orig_htmls',
         'orig_texts',
         'tran_htmls',
-        'tran_texts'
+        'tran_texts',
+        'saved_terms'
     ],
+    data () {
+        return {
+            data_saved_terms: this.saved_terms,
+        }
+    },
+    created: function () {
+        let self = this;
+        this.$EventBus.$on("terms_list-updated", function (saved_terms) {
+          self.data_saved_terms = saved_terms;
+        });
+    },
     /*
     template: `
     <div id="bt_panels">
@@ -25,6 +37,7 @@ Vue.component('bt_panels', {
             :orig_texts="orig_texts"
             :tran_htmls="tran_htmls"
             :tran_texts="tran_texts"
+            :saved_terms="data_saved_terms"
         ></bt_sent_panel>
         <bt_token_panel
             :active_token="active_token"
@@ -32,6 +45,7 @@ Vue.component('bt_panels', {
             :orig_texts="orig_texts"
             :tran_htmls="tran_htmls"
             :tran_texts="tran_texts"
+            :saved_terms="data_saved_terms"
         ></bt_token_panel>
     </div>`
     */
@@ -48,6 +62,7 @@ Vue.component('bt_panels', {
                     orig_texts: this.orig_texts,
                     tran_htmls: this.tran_htmls,
                     tran_texts: this.tran_texts,
+                    saved_terms: this.data_saved_terms,
                 }
             }, []),
             h('bt_token_panel', {
@@ -58,6 +73,7 @@ Vue.component('bt_panels', {
                     orig_texts: this.orig_texts,
                     tran_htmls: this.tran_htmls,
                     tran_texts: this.tran_texts,
+                    saved_terms: this.data_saved_terms,
                 }
             }, [])
         ])
@@ -72,7 +88,8 @@ Vue.component('bt_sent_panel', {
         'orig_htmls',
         'orig_texts',
         'tran_htmls',
-        'tran_texts'
+        'tran_texts',
+        'saved_terms'
     ],
     /*
     template: `
@@ -80,6 +97,7 @@ Vue.component('bt_sent_panel', {
         <orig_sent
             :sent_id="sent_id"
             :orig_texts="orig_texts"
+            :saved_terms="saved_terms"
         ></orig_sent>
     </div>`
     */
@@ -93,6 +111,7 @@ Vue.component('bt_sent_panel', {
                 props: {
                     sent_id: this.sent_id,
                     orig_texts: this.orig_texts,
+                    saved_terms: this.saved_terms,
                 }
             }, [])
         ])
@@ -104,6 +123,7 @@ Vue.component('orig_sent', {
     props: [
         'sent_id',
         'orig_texts',
+        'saved_terms'
     ],
     computed: {
         sent_index: function () {
@@ -193,17 +213,30 @@ Vue.component('bt_token_panel', {
         'orig_htmls',
         'orig_texts',
         'tran_htmls',
-        'tran_texts'
+        'tran_texts',
+        'saved_terms'
     ],
     data () {
         return {
-            my_active_token: this.active_token,
+            data_active_token: this.active_token,
+        }
+    },
+    computed: {
+        sent_index: function () {
+            return parseInt(this.sent_id.replace('sent_',''))
+        },
+        sent_text: function () {
+            return this.orig_texts[this.sent_index]
+        },
+        tokens: function () {
+            split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:])/g, '$1 $2')
+            return split_symbol.split(' ')
         }
     },
     created: function () {
         let self = this; 
         this.$EventBus.$on("token-clicked", function (token) { 
-          self.my_active_token = token; 
+          self.data_active_token = token;
         }); 
     },    
     /*
@@ -214,7 +247,13 @@ Vue.component('bt_token_panel', {
         ></active_token>
         <term_form
             :active_token="active_token"
+            :saved_terms="saved_terms"
         ></term_form>
+        <terms_list
+            :active_token="active_token"
+            :tokens="tokens"
+            :saved_terms="saved_terms"
+        ></terms_list>
         <dict_pane
             :active_token="active_token"
         ></dict_pane>
@@ -230,17 +269,25 @@ Vue.component('bt_token_panel', {
         [
             h('active_token', {
                 props: {
-                    active_token: this.my_active_token,
+                    active_token: this.data_active_token,
                 }
             }),
             h('term_form', {
                 props: {
-                    active_token: this.my_active_token,
+                    active_token: this.data_active_token,
+                    saved_terms: this.saved_terms,
+                }
+            }),
+            h('terms_list', {
+                props: {
+                    active_token: this.data_active_token,
+                    tokens: this.tokens,
+                    saved_terms: this.saved_terms,
                 }
             }),
             h('dict_pane', {
                 props: {
-                    active_token: this.my_active_token,
+                    active_token: this.data_active_token,
                 }
             }, [])
         ])
@@ -293,8 +340,76 @@ Vue.component('active_token', {
 // 詞語表單
 Vue.component('term_form', {
     props: [
-        'active_token'
+        'active_token',
+        'saved_terms'
     ],
+    methods: {
+        getTermForm: function () {
+            return {
+                ot_text: document.querySelector("#term_form input#ot_text").value,
+                tt_text: document.querySelector("#term_form input#tt_text").value,
+                mt_text: document.querySelector("#term_form input#mt_text").value,
+            }
+        },
+        save_term: function () {
+            var form_input = this.getTermForm();
+
+            // 接下來會用到 saved_terms 這個全域變數，其結構請參見 global.js 。。。
+            // 但若直接操作全域變數，那送進來的 saved_terms 呢？？？
+
+            var changed = false
+            // 先檢查此 token 是否已有舊記錄
+            if (this.active_token in saved_terms) {
+                // 再檢查舊記錄列表中是否已存在相同的解釋，不存在才須添加
+                if (!(saved_terms[this.active_token].some(ele=>
+                    JSON.stringify(ele)==JSON.stringify(form_input)))) {
+                    saved_terms[this.active_token].push(form_input)
+                    changed = true
+                }
+            }
+            // 此 token 根本沒記錄過，就直接建一個
+            else {
+                saved_terms[this.active_token] = [form_input]
+                changed = true
+            }
+
+            if (changed) { // 有變動才進行更新
+                // 把 saved_terms 存入 localStorage（直接覆蓋掉舊記錄）
+                localStorage.setItem('saved_terms', JSON.stringify(saved_terms))
+                // 發出事件，通知資料變更
+                this.$EventBus.$emit('terms_list-updated', saved_terms);
+            }
+
+        },
+        delete_term: function () {
+            // 真正送出片語時， ot_text 有可能被修改過。。。如果被人工修改，其他參數可能都會變得不一樣。。。所以應該要檢查一下。。。
+
+            var form_input = this.getTermForm();
+
+            // 這個 token 已有舊記錄，才需要進行刪除
+            if (this.active_token in saved_terms) {
+                old_list = saved_terms[this.active_token]
+                // 從舊記錄列表中篩選掉相應記錄（只留下不相同的其他記錄）
+                new_list = old_list.filter(ele=>
+                    JSON.stringify(ele)!==JSON.stringify(form_input))
+
+                if (new_list.length > 0) {
+                    saved_terms[this.active_token] = new_list
+                }
+                else {
+                    // 如果列表空了，就是沒有任何解釋記錄了，則此 token 記錄也要從 saved_terms 裡移除
+                    // delete saved_terms[this.active_token]
+                    // delete 似乎會造成 Vue 的聯動性斷掉。。。只好保留 [] 記錄
+                    saved_terms[this.active_token] = new_list
+                }self.data_saved_terms = saved_terms;
+
+                // 把 saved_terms 存入 localStorage（或是直接覆蓋掉舊記錄）
+                localStorage.setItem('saved_terms', JSON.stringify(saved_terms))
+                // 發出事件，通知資料變更
+                this.$EventBus.$emit('terms_list-updated', saved_terms);
+            }
+        }
+    },
     /*
     template: `
         <div id="term_form">
@@ -303,10 +418,6 @@ Vue.component('term_form', {
             <div>機譯 <input id="mt_text" type="text" name="mt_text" /></div>
             <input id="term_submit" type="button" value="保存" @click="save_term" />
             <input id="term_delete" type="button" value="刪除" @click="delete_term" />
-            <input id="implement_term_or_not" type="checkbox" name="implement_term_or_not" value="term_implemented"
-                v-model="implement_term_or_not"
-                @change="changeCheckbox" />
-            自動代入
         </div>`
     */
     render(h) {
@@ -316,32 +427,70 @@ Vue.component('term_form', {
             h('div', ['人譯 ', h('input', { attrs: {id: "tt_text", type: "text", name: "tt_text"}})]),
             h('div', ['機譯 ', h('input', { attrs: {id: "mt_text", type: "text", name: "mt_text"}})]),
             h('input', {
-                attrs: {id: "implement_term_or_not", type: "checkbox", name: 'implement_term_or_not', value: "term_implemented"},
-                // 【v-model】
-                // checkbox 的 v-model 要看 change 事件，同步 checked 的值
-                /*
-                domProps: {
-                    checked: self.implement_term_or_not,   // 這相當於 v-bind：用 Vue.data 去設定 DOM 的 attr 屬性
-                },
-                on: {
-                    change: e => {
-                        self.implement_term_or_not = e.target.checked;  // 這相當於 v-model：用 DOM 的 attr 屬性去更新 Vue.data
-                        self.$emit('change', e.target.value);  // 再送個事件出去，讓別處也可以得到通知
-                        self.changeCheckbox();  // 這其實是去通知外面更新全域變數 ==》其實應該在別處接收事件通知，再進行此動作
-                    },
-                },
-                */
-            }),
-            '自動代入',
-            h('input', {
                 attrs: {id: "term_submit", type: "button", value: "保存"},
-                //on: {click: self.save_term },
+                on: {click: self.save_term },
             }),
             h('input', {
                 attrs: {id: "term_delete", type: "button", value: "刪除"},
-                //on: {click: self.delete_term },
+                on: {click: self.delete_term },
             })
         ])
+    }
+});
+
+// 已儲存詞語列表
+Vue.component('terms_list', {
+    props: [
+        'active_token',
+        'tokens',
+        'saved_terms'
+    ],
+    data () {
+        return {
+            data_saved_terms: this.saved_terms
+        }
+    },
+    created: function () {
+        let self = this;
+        this.$EventBus.$on("terms_list-updated", function (saved_terms) {
+          self.data_saved_terms = saved_terms;
+        });
+    },
+    computed: {
+        saved_tokens_in_this_sent: function () {
+            tmp_list = Object.keys(this.data_saved_terms)
+            tmp_list2 = tmp_list.filter(token=>this.tokens.includes(token))
+            return tmp_list2
+        },
+    },
+    /*
+    template: `
+        <div id="terms_list">
+            <div v-for="term in data_saved_terms">
+                {{term.ot_text}}：{{term.mt_text}}==》{{term.tt_text}}
+            </div>
+        </div>`
+    */
+    render(h) {
+        var self = this;
+        console.log(111,this.data_saved_terms)
+        // var tokens = Object.keys(this.data_saved_terms)
+        return h('div',
+            {attrs: {id: "terms_list"}},
+            this.saved_tokens_in_this_sent.map(token => {
+                exp0 = this.data_saved_terms[token][0]
+                // 因為可能有 [] 空記錄，所以要判斷一下。。。
+                // 之所以會有空記錄，是因為 delete 掉空記錄似乎會造成 Vue 即時資料更新失效。。。
+                if (exp0) {
+                    return h('div',
+                        `${exp0.ot_text}：${exp0.mt_text}==》${exp0.tt_text}`
+                    )
+                }
+                else {
+                    return ''
+                }
+            })
+        )
     }
 });
 

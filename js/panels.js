@@ -89,22 +89,24 @@ function setPanels(data) {
             data () {
                 return {
                     sent_id: data.node?data.node.id:'sent_0',
-                    active_token: data.active_token?data.active_token:'book',
+                    active_token: data.active_token?data.active_token:'',
                     orig_htmls: data.orig_htmls?data.orig_htmls:{},
                     orig_texts: data.orig_texts?data.orig_texts:{},
                     tran_htmls: data.tran_htmls?data.tran_htmls:{},
-                    tran_texts: data.tran_texts?data.tran_texts:{}
+                    tran_texts: data.tran_texts?data.tran_texts:{},
+                    saved_terms: data.saved_terms?data.saved_terms:{},
                 }
             },
             /*
             template: `
             <bt_panels
-                :prop_sent_id="sent_id"
+                :sent_id="sent_id"
                 :active_token="active_token"
-                :prop_orig_htmls="orig_htmls"
-                :prop_orig_texts="orig_texts"
-                :prop_tran_htmls="tran_htmls"
-                :prop_tran_texts="tran_texts"
+                :orig_htmls="orig_htmls"
+                :orig_texts="orig_texts"
+                :tran_htmls="tran_htmls"
+                :tran_texts="tran_texts"
+                :saved_terms="saved_terms"
             ></bt_panels>`
             */
             render(h) {
@@ -116,6 +118,7 @@ function setPanels(data) {
                         orig_texts: this.orig_texts,
                         tran_htmls: this.tran_htmls,
                         tran_texts: this.tran_texts,
+                        saved_terms: this.saved_terms,
                     }
                 })
             }
