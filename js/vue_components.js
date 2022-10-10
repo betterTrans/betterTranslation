@@ -133,7 +133,7 @@ Vue.component('orig_sent', {
             return this.orig_texts[this.sent_index]
         },
         tokens: function () {
-            split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:])/g, '$1 $2')
+            split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:\?])/g, '$1 $2')
             return split_symbol.split(' ')
         }
     },
@@ -229,7 +229,7 @@ Vue.component('bt_token_panel', {
             return this.orig_texts[this.sent_index]
         },
         tokens: function () {
-            split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:])/g, '$1 $2')
+            split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!:\?])/g, '$1 $2')
             return split_symbol.split(' ')
         }
     },
@@ -414,8 +414,8 @@ Vue.component('term_form', {
     template: `
         <div id="term_form">
             <div>原文 <input id="ot_text" type="text" name="ot_text" :value="action_token"/></div>
-            <div>人譯 <input id="tt_text" type="text" name="tt_text" /></div>
             <div>機譯 <input id="mt_text" type="text" name="mt_text" /></div>
+            <div>人譯 <input id="tt_text" type="text" name="tt_text" /></div>
             <input id="term_submit" type="button" value="保存" @click="save_term" />
             <input id="term_delete" type="button" value="刪除" @click="delete_term" />
         </div>`
@@ -424,8 +424,8 @@ Vue.component('term_form', {
         var self = this;
         return h('div', {attrs: {id: "term_form"}}, [
             h('div', ['原文 ', h('input', { attrs: {id: "ot_text", type: "text", name: "ot_text", value: this.active_token } })]),
-            h('div', ['人譯 ', h('input', { attrs: {id: "tt_text", type: "text", name: "tt_text"}})]),
             h('div', ['機譯 ', h('input', { attrs: {id: "mt_text", type: "text", name: "mt_text"}})]),
+            h('div', ['人譯 ', h('input', { attrs: {id: "tt_text", type: "text", name: "tt_text"}})]),
             h('input', {
                 attrs: {id: "term_submit", type: "button", value: "保存"},
                 on: {click: self.save_term },
@@ -473,7 +473,6 @@ Vue.component('terms_list', {
     */
     render(h) {
         var self = this;
-        console.log(111,this.data_saved_terms)
         // var tokens = Object.keys(this.data_saved_terms)
         return h('div',
             {attrs: {id: "terms_list"}},
