@@ -189,7 +189,25 @@ function switchToModification(node) {
     var prev_len = len(node.innerHTML)
     // prev_len = len(node.textContent)
 
-    node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
+    // 詞語替換
+    var old_innerHTML = node.innerHTML
+    var orig_text = orig_texts[parseInt(node.id.replace('sent_',''))]
+    var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!:\?])/g, '$1 $2')
+    var tokens = split_symbol.split(' ')
+    var saved_tokens = Object.keys(saved_terms)
+    var terms2replace = tokens.filter(ele=>saved_tokens.includes(ele))
+    var new_innerHTML = old_innerHTML
+    for (var i in terms2replace) {
+        var term = terms2replace[i]
+        var exps = saved_terms[term]
+        for (var j in exps) {
+            var exp = exps[j]
+            new_innerHTML = new_innerHTML.replace(exp.mt_text, exp.tt_text)
+        }
+    }
+
+    node.innerHTML = `<textarea>${new_innerHTML}</textarea>`
+    // node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
     // node.innerHTML = `<textarea>${node.textContent}</textarea>`
 
     var textarea = node.querySelector("textarea")
