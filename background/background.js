@@ -36,11 +36,44 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             fetch(url)
             .then(r=>r.text())
             .then((response) => {
-                console.log(response)
+                // console.log(response)
                 chrome.tabs.sendMessage(sender.tab.id, {cmd: 'dict_search_result', data: {
                     response: response,
                 }});
             });
+        }
+    }
+    else if (message.cmd == 'save_term') {
+        chrome.tabs.sendMessage(sender.tab.id, {cmd: 'save_term', data: message.data});
+    }
+    else if (message.cmd == 'delete_term') {
+        chrome.tabs.sendMessage(sender.tab.id, {cmd: 'delete_term', data: message.data});
+    }
+    else if (message.cmd == "get_syntax_result") {  //取回句子的語法分析結果
+        if ("sentence" in message.data) {
+            // 把句子送出去進行語法分析
+            fetch('http://localhost/api/syntax', {
+                method: 'POST',
+                body: new URLSearchParams({data: JSON.stringify(message.data)}),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    //'content-type': 'application/json'
+                },
+            })
+            .then(r=>r.text())
+            .then(function(response) {
+                // 取得語法分析結果之後，
+                result = JSON.parse(response);
+                // 就把語法分析結果送回去
+                chrome.tabs.sendMessage(sender.tab.id, {
+                    cmd: 'return_syntax_result',
+                    data: {
+                        sent_text: message.data.sentence,
+                        syntax_result: result,
+                    }
+                });
+            })
+            .catch(e=>console.error(e));
         }
     }
 });

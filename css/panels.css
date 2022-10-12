@@ -42,6 +42,47 @@ div#bt_sent_panel {
     box-shadow: 0px 5px 15px 5px #333;
 }
 
+/* 原文 token */
+.orig_token {
+    color: black;
+    float: left;
+    margin: 0 0 2px 0;
+    padding-right: 5px;
+    text-align: center;
+    background-color: none;
+}
+
+.orig_token.active, span.active {
+    color: #f00;  /* 純紅色 */
+}
+
+.orig_token>.tag, .orig_token>.label, .orig_token>.lemma {
+    display: none;
+    opacity: 0;
+    color: #FFF;
+    font-size: 70%;
+}
+
+div#ot_sent {
+    max-height: 5.5em;
+    overflow: auto;
+}
+
+div.tt_text, div.mt_text {
+    color: #cccccc;
+    font-family: 微軟正黑體;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+div.mt_text {
+    display: none;
+}
+
+.root {
+    color: darkgreen;
+}
+
 /*  詞語面板  */
 div#bt_token_panel {
     z-index: 9999;

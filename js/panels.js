@@ -95,6 +95,7 @@ function setPanels(data) {
                     tran_htmls: data.tran_htmls?data.tran_htmls:{},
                     tran_texts: data.tran_texts?data.tran_texts:{},
                     saved_terms: data.saved_terms?data.saved_terms:{},
+                    syntax_results: data.syntax_results?data.syntax_results:{},
                 }
             },
             /*
@@ -107,6 +108,7 @@ function setPanels(data) {
                 :tran_htmls="tran_htmls"
                 :tran_texts="tran_texts"
                 :saved_terms="saved_terms"
+                :syntax_results="syntax_results"
             ></bt_panels>`
             */
             render(h) {
@@ -119,6 +121,7 @@ function setPanels(data) {
                         tran_htmls: this.tran_htmls,
                         tran_texts: this.tran_texts,
                         saved_terms: this.saved_terms,
+                        syntax_results: this.syntax_results,
                     }
                 })
             }

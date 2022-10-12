@@ -36,6 +36,95 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             hotkey_handlers[message.cmd]();
         }
     }
+    else if (message.cmd == 'save_term') {
+        var active_token = message.data.active_token;
+        var form_input = message.data.form_input;
+
+        // 接下來會用到 saved_terms 這個全域變數，其結構請參見 global.js 。。。
+
+        var changed = false
+        // 先檢查此 token 是否已有舊記錄
+        if (active_token in saved_terms) {
+            // 再檢查舊記錄列表中是否已存在相同的解釋，不存在才須添加
+            if (!(saved_terms[active_token].some(ele=>
+                JSON.stringify(ele)==JSON.stringify(form_input)))) {
+                saved_terms[active_token].push(form_input)
+                changed = true
+            }
+        }
+        // 此 token 根本沒記錄過，就直接建一個
+        else {
+            saved_terms[active_token] = [form_input]
+            changed = true
+        }
+
+        if (changed) { // 有變動才進行更新
+            // 把 saved_terms 存入 localStorage（直接覆蓋掉舊記錄）
+            localStorage.setItem('saved_terms', JSON.stringify(saved_terms))
+            // 更新 Vue 實體
+            panels.$data.saved_terms = saved_terms;
+            panels.$forceUpdate()
+        }
+    }
+    else if (message.cmd == 'delete_term') {
+        var active_token = message.data.active_token;
+        var form_input = message.data.form_input;
+
+        // 接下來會用到 saved_terms 這個全域變數，其結構請參見 global.js 。。。
+
+        // 這個 token 已有舊記錄，才需要進行刪除
+        if (active_token in saved_terms) {
+            old_list = saved_terms[active_token]
+            // 從舊記錄列表中篩選掉相應記錄（只留下不相同的其他記錄）
+            new_list = old_list.filter(ele=>
+                JSON.stringify(ele)!==JSON.stringify(form_input))
+
+            if (new_list.length > 0) {
+                saved_terms[active_token] = new_list
+            }
+            else {
+                // 如果列表空了，就是沒有任何解釋記錄了，則此 token 記錄也要從 saved_terms 裡移除
+                // delete saved_terms[active_token]
+                // delete 似乎會造成 Vue 的聯動性斷掉。。。只好保留 [] 記錄
+                saved_terms[active_token] = new_list
+            }
+
+            // 把 saved_terms 存入 localStorage（或是直接覆蓋掉舊記錄）
+            localStorage.setItem('saved_terms', JSON.stringify(saved_terms))
+            // 更新 Vue 實體
+            panels.$data.saved_terms = saved_terms;
+            panels.$forceUpdate()
+        }
+    }
+    else if (message.cmd == 'return_syntax_result') {
+        var sent_text = message.data.sent_text;
+        var syntax_result = message.data.syntax_result;
+
+        // 接下來會用到 syntax_results 這個全域變數，其結構請參見 global.js 。。。
+
+        var changed = false
+        // 先檢查此 token 是否已有舊記錄
+        if (sent_text in syntax_results) {
+            // 再檢查舊記錄是否與新紀錄相同，不相同才需更新
+            if (JSON.stringify(syntax_results[sent_text])!==JSON.stringify(syntax_result)) {
+                syntax_results[sent_text] = syntax_result   // 換成新的
+                changed = true
+            }
+        }
+        // 此句根本沒記錄過，就直接建一個
+        else {
+            syntax_results[sent_text] = syntax_result
+            changed = true
+        }
+
+        if (changed) { // 有變動才進行更新
+            // 把 syntax_results 存入 localStorage（直接覆蓋掉舊記錄）
+            localStorage.setItem('syntax_results', JSON.stringify(syntax_results))
+            // 更新 Vue 實體
+            panels.$data.syntax_results = syntax_results;
+            panels.$forceUpdate()
+        }
+    }
     else if (message.cmd == 'dict_search_result') {
         // 發出【外查字典】dict_search 的請求後，如果收到查詢結果，就用 vue 把查詢結果呈現出來
         showDict4Token(message.data);
@@ -192,7 +281,7 @@ function switchToModification(node) {
     // 詞語替換
     var old_innerHTML = node.innerHTML
     var orig_text = orig_texts[parseInt(node.id.replace('sent_',''))]
-    var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!:\?])/g, '$1 $2')
+    var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')
     var tokens = split_symbol.split(' ')
     var saved_tokens = Object.keys(saved_terms)
     var terms2replace = tokens.filter(ele=>saved_tokens.includes(ele))
@@ -202,7 +291,9 @@ function switchToModification(node) {
         var exps = saved_terms[term]
         for (var j in exps) {
             var exp = exps[j]
-            new_innerHTML = new_innerHTML.replace(exp.mt_text, exp.tt_text)
+            if (exp.mt_text.length>0 && exp.tt_text.length>0) {
+                new_innerHTML = new_innerHTML.replace(exp.mt_text, exp.tt_text)
+            }
         }
     }
 
@@ -223,6 +314,7 @@ function switchToModification(node) {
         tran_htmls: tran_htmls,
         tran_texts: tran_texts,
         saved_terms: saved_terms,
+        syntax_results: syntax_results,
     });
     slideInPanel('bt_sent_panel')
 }
@@ -327,6 +419,8 @@ function switchTranslation() {
     tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
     saved_terms = localStorage.getItem('saved_terms')
     saved_terms = saved_terms?JSON.parse(saved_terms):{}
+    syntax_results = localStorage.getItem('syntax_results')
+    syntax_results = syntax_results?JSON.parse(syntax_results):{}
 
     // 套入各句內容
     translated = !translated
