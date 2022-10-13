@@ -150,6 +150,13 @@ Vue.component('orig_sent', {
             var tokens;
             if (this.syntax_result) {
                 tokens = this.syntax_result.tokens
+
+                // 取得語法分析後的 tokens 之後，還要去外部取回 svced_terms
+                token_strs = []
+                for (var i in tokens) {
+                    token_strs.push(tokens[i].text.content)
+                }
+                chrome.runtime.sendMessage({cmd: 'get_saved_terms', data: {tokens: token_strs} })
             }
             else {
                 split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')

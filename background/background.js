@@ -45,9 +45,32 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     }
     else if (message.cmd == 'save_term') {
         chrome.tabs.sendMessage(sender.tab.id, {cmd: 'save_term', data: message.data});
+        simple_fetch('http://localhost/api/save_term', message.data)
     }
     else if (message.cmd == 'delete_term') {
         chrome.tabs.sendMessage(sender.tab.id, {cmd: 'delete_term', data: message.data});
+        simple_fetch('http://localhost/api/delete_term', message.data)
+    }
+    else if (message.cmd == 'get_saved_terms') {
+        if ("tokens" in message.data) {
+            fetch('http://localhost/api/get_terms', {
+                method: 'POST',
+                body: new URLSearchParams({data: JSON.stringify(message.data)}),
+                headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+            })
+            .then(r=>r.text())
+            .then(function(response) {
+                result = JSON.parse(response);
+                
+                chrome.tabs.sendMessage(sender.tab.id, {
+                    cmd: 'return_saved_terms',
+                    data: {
+                        saved_terms: result['saved_terms'],
+                    }
+                });
+            })
+            .catch(e=>console.error(e));
+        }
     }
     else if (message.cmd == "get_syntax_result") {  //取回句子的語法分析結果
         if ("sentence" in message.data) {
@@ -55,10 +78,7 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             fetch('http://localhost/api/syntax', {
                 method: 'POST',
                 body: new URLSearchParams({data: JSON.stringify(message.data)}),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    //'content-type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             })
             .then(r=>r.text())
             .then(function(response) {
@@ -96,4 +116,18 @@ async function getGoogleTranslationV2(api_key, text, tar_lang='zh-TW') {
     .then(r=>r.data.translations[0].translatedText);
 
     return promise
+}
+
+async function simple_fetch(url, data) {
+    fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams({data: JSON.stringify(data)}),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    })
+    .then(r=>r.text())
+    .then(function(response) {
+        result = JSON.parse(response);
+        // console.log(result)
+    })
+    .catch(e=>console.error(e));
 }

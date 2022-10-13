@@ -96,6 +96,13 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             panels.$forceUpdate()
         }
     }
+    else if (message.cmd == 'return_saved_terms') {
+        saved_terms = message.data.saved_terms;
+        if (Object.keys(saved_terms).length > 0) {
+            panels.$data.saved_terms = saved_terms;
+            panels.$forceUpdate()
+        }
+    }
     else if (message.cmd == 'return_syntax_result') {
         var sent_text = message.data.sent_text;
         var syntax_result = message.data.syntax_result;
@@ -417,8 +424,8 @@ function switchTranslation() {
     orig_htmls = getValueByPath('orig_htmls_by_path', path, {})
     tran_texts = getValueByPath('tran_texts_by_path', path, {})
     tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
-    saved_terms = localStorage.getItem('saved_terms')
-    saved_terms = saved_terms?JSON.parse(saved_terms):{}
+    //saved_terms = localStorage.getItem('saved_terms')
+    //saved_terms = saved_terms?JSON.parse(saved_terms):{}
     syntax_results = localStorage.getItem('syntax_results')
     syntax_results = syntax_results?JSON.parse(syntax_results):{}
 
