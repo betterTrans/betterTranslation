@@ -4,8 +4,18 @@ $(document).ready((e)=>{
 })
 */
 
+// showBTbuttonOnPage()
+
 window.addEventListener('load', (e)=>{
-    
+// window.addEventListener('DOMContentLoaded', (e)=> {
+
+    if (navigator.userAgentData.mobile   // 如果是行動瀏覽器的話==>新屬性，有些瀏覽器不支援
+        || typeof window.orientation !== 'undefined'    // 通常行動裝置才會定義螢幕方向
+        || 'ontouchstart' in document.documentElement) { // 通常行動裝置才會定義 touch 事件
+        // 在頁面中添加一個漂浮按鈕，讓沒有鍵盤快速鍵、無法召喚右鍵選單的行動裝置，得以召喚出 bT 功能
+        showBTbuttonOnPage()
+    }
+
 })
 
 
@@ -501,3 +511,54 @@ function speak(msg) {
     msgToSpeak.text = msg;
     synth.speak(msgToSpeak);
 }
+
+function showBTbuttonOnPage(title="bT 翻譯") {
+
+    if (!document.querySelector("#trigger_div")) {
+        trigger_div = document.createElement("div");
+        trigger_div.id = "trigger_div"
+        trigger_div.innerHTML = `
+        <input type="button" id="trigger_x" value="X" />\
+        <input type="button" id="trigger_0" value="${title}" />\
+        <input type="button" id="trigger_1" value="1" />\
+        <input type="button" id="trigger_2" value="2" />\
+        <input type="button" id="trigger_3" value="3" />\
+        <input type="button" id="trigger_R" value="@" />`
+        document.body.append(trigger_div);  // 在 </body> 後面、畫面左下方加上一排按鍵
+
+        // 待改進：如果已經存過所有句子的機器翻譯，就不用顯示 1/2/3 了。。。
+
+        document.querySelector("#trigger_x").onclick = e => {
+            removeBTbuttonOnPage();
+        }
+        document.querySelector("#trigger_0").onclick = e => {
+            removeBTbuttonOnPage();
+            switchTranslation();
+            showBTbuttonOnPage();
+        }
+        document.querySelector("#trigger_1").onclick = e => {
+            removeBTbuttonOnPage();
+            Alt1();
+            showBTbuttonOnPage();
+        }
+        document.querySelector("#trigger_2").onclick = e => {
+            removeBTbuttonOnPage();
+            Alt2();
+            showBTbuttonOnPage();
+        }
+        document.querySelector("#trigger_3").onclick = e => {
+            removeBTbuttonOnPage();
+            Alt3();
+            showBTbuttonOnPage();
+        }
+        document.querySelector("#trigger_R").onclick = e => {
+            location.reload();  // 重整頁面
+        }
+    }
+  }
+
+  function removeBTbuttonOnPage() {
+    if (document.querySelector("#trigger_div")) {
+        document.querySelector("#trigger_div").remove();
+    }
+  }
