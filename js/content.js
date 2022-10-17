@@ -382,8 +382,10 @@ function cancelModification() {
 }
 
 function removeDoubleFontTagOfGoogleTranslation(html_str) {
-    re_google_double_font_tag = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
-    html_str = html_str.replace(re_google_double_font_tag, '$1')
+    re_google_double_font_tag_1 = /\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>/g
+    re_google_double_font_tag_2 = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
+    html_str = html_str.replace(re_google_double_font_tag_1, '$1')
+    html_str = html_str.replace(re_google_double_font_tag_1, '$1')  // 會有兩層，所以清理兩次
 
     return html_str
 }
@@ -522,8 +524,8 @@ function showBTbuttonOnPage(title="bT 翻譯") {
         <input type="button" id="trigger_0" value="${title}" />\
         <input type="button" id="trigger_1" value="1" />\
         <input type="button" id="trigger_2" value="2" />\
-        <input type="button" id="trigger_3" value="3" />\
-        <input type="button" id="trigger_R" value="@" />`
+        <input type="button" id="trigger_3" value="3" />` //\
+        // <input type="button" id="trigger_R" value="@" />`
         document.body.append(trigger_div);  // 在 </body> 後面、畫面左下方加上一排按鍵
 
         // 待改進：如果已經存過所有句子的機器翻譯，就不用顯示 1/2/3 了。。。

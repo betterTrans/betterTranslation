@@ -17,7 +17,7 @@ textarea::-webkit-scrollbar {
     position: fixed;
     left: 0;
     bottom: 0;
-    margin: 30px;
+    margin: 20px;
     z-index: 19999;
 }
 
