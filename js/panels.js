@@ -35,7 +35,7 @@ function slideInPanel(id, duration = '300ms', overlay = false) {
 function slideOutPanel(id, duration = '300ms', overlay = false) {
     var panel = document.querySelector("div#" + id);
     if (panel && !(panel.classList.contains('off'))) {
-        panel.classList.remove('on')
+        panel.classList.remove('on');
         panel.classList.add('off');
 
         if (panel.classList.contains('top')) {
@@ -158,7 +158,9 @@ function showDict4Token(dictResult) {
         }
     }
 
-    document.querySelector("#dict_result").innerHTML = exp.innerHTML;
+    if (exp) {
+        document.querySelector("#dict_result").innerHTML = exp.innerHTML;
+    }
 
     /*
     // 設定例句切換顯示
