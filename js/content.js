@@ -383,9 +383,10 @@ function cancelModification() {
 
 function removeDoubleFontTagOfGoogleTranslation(html_str) {
     re_google_double_font_tag_1 = /\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>/g
-    re_google_double_font_tag_2 = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
-    html_str = html_str.replace(re_google_double_font_tag_1, '$1')
-    html_str = html_str.replace(re_google_double_font_tag_1, '$1')  // 會有兩層，所以清理兩次
+    // re_google_double_font_tag_2 = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
+    html_str = html_str
+        .replace(re_google_double_font_tag_1, '$1')
+        .replace(re_google_double_font_tag_1, '$1')  // 會有兩層，所以清理兩次
 
     return html_str
 }
