@@ -10,6 +10,7 @@
             "css/panels.css"
         ],
         "js": [
+            "/js/utils.js",
             "/js/global.js",
             "js/vue.min.js",
             "js/vue_components.js",
