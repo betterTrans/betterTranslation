@@ -4,6 +4,7 @@ var orig_texts = {}
 var tran_texts = {}
 var orig_htmls = {}
 var tran_htmls = {}
+var tmp_orig_tran = []  // 存放著之前用過（可能也修改過）、但後來沒再用到的翻譯。。。是不是也應該留存起來呢？但留存這個到後來會不會爆炸呢？
 var translated = false
 var path = window.location.pathname + window.location.search
 

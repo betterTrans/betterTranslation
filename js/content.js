@@ -437,6 +437,7 @@ function switchTranslation() {
     orig_htmls = getValueByPath('orig_htmls_by_path', path, {})
     tran_texts = getValueByPath('tran_texts_by_path', path, {})
     tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
+    tmp_orig_tran = getValueByPath('tmp_orig_tran_by_path', path, [])
     //saved_terms = localStorage.getItem('saved_terms')
     //saved_terms = saved_terms?JSON.parse(saved_terms):{}
     syntax_results = localStorage.getItem('syntax_results')
@@ -444,18 +445,101 @@ function switchTranslation() {
 
     // 套入各句內容
     translated = !translated
-    if (translated) {
-        if (body1) {
-            document.body.innerHTML = body1;
-        }
+    if (translated) {   // 切換成譯文
+
+        var orig_tran_modified = false
+        var used_orig_tran = []
 
         document.querySelectorAll("sent").forEach((node, i)=>{
             node.id = `sent_${i}`
-            if (tran_htmls && i in tran_htmls) {
-                node.innerHTML = tran_htmls[i]
+            node.title = node.textContent
+            // if (orig_texts && i in orig_texts) {    // 原文有記錄
+                // 頁面內容有可能動態變化，所以套入前最好先檢查一下內容有沒有改變！
+                // 注意！！比較時本應根據 HTML，但很多網頁在重新載入時內文不變，標籤屬性卻改變！！
+                // ==》這其實很棘手！！目前做法也只是暫時方案...
+                // 在目前做法下，只要 textContent 沒改變，就直接採用，不進行更新
+            if ((orig_texts && i in orig_texts) && (node.textContent==orig_texts[i])) {    // 原文有記錄 && 原文沒改變
+                if (tran_htmls && i in tran_htmls) {    // 譯文有記錄
+                    node.innerHTML = tran_htmls[i]?tran_htmls[i]:orig_htmls[i]
+                    // 把這個記錄標示為【用過了】
+                    used_orig_tran.push({
+                        orig_html: orig_htmls[i],
+                        orig_text: orig_texts[i],
+                        tran_html: tran_htmls[i],
+                        tran_text: tran_texts[i],
+                    })
+                }
             }
-            if (orig_texts && i in orig_texts) {
-                node.title = orig_texts[i]
+            else {  // 原文改變了
+                orig_tran_modified = true
+
+                if (orig_texts && i in orig_texts) {   // 若存在就先保留起來
+                    var old_record = {
+                        orig_html: orig_htmls[i],
+                        orig_text: orig_texts[i],
+                        tran_html: tran_htmls[i],
+                        tran_text: tran_texts[i],
+                    }
+                    // 看看舊紀錄是不是被【用過了】，沒被用過而且有譯文，才放入 tmp_orig_tran
+                    if (obj_in_list(old_record, used_orig_tran)===null && old_record.tran_text) {
+                        tmp_orig_tran.push(old_record)
+                    }
+                }
+
+                orig_htmls[i] = node.innerHTML
+                orig_texts[i] = node.textContent
+                // 先放 null。。。
+                tran_htmls[i] = null
+                tran_texts[i] = null
+
+                // 應該找找看，有可能只是換位置了！
+                var found = false
+                for (var j in orig_htmls) {
+                    if (node.textContent == orig_texts[j] && tran_htmls[j]) {
+                        found = true
+                        node.innerHTML = tran_htmls[j]
+                        // 不只如此！！ 四大變數都要改！！
+                        tran_htmls[i] = node.innerHTML
+                        tran_texts[i] = node.textContent
+
+                        // 把這個記錄標示為【用過了】
+                        used_orig_tran.push({
+                            orig_html: orig_htmls[j],
+                            orig_text: orig_texts[j],
+                            tran_html: tran_htmls[j],
+                            tran_text: tran_texts[j],
+                        })
+
+                        break
+                    }
+                }
+
+                // 如果還是沒找到，但 tmp_orig_tran 裡面有東西。。。
+                if (!found && tmp_orig_tran.length > 0) {
+                    for (j in tmp_orig_tran) {
+                        if (node.textContent == tmp_orig_tran[j].orig_text && tmp_orig_tran[j].tran_text) {
+                            found = true
+                            // 從 tmp_orig_tran 取出記錄
+                            tmp_record = tmp_orig_tran.splice(j,1)[0]
+
+                            node.innerHTML = tmp_record.tran_html
+                            // 不只如此！！ 四大變數都要改！！
+                            tran_htmls[i] = node.innerHTML
+                            tran_texts[i] = node.textContent
+
+                            // 把這個記錄標示為【用過了】
+                            used_orig_tran.push(tmp_record)
+
+                            break
+                        }
+                    }
+                }
+
+                /*
+                console.log(node.id)
+                console.log(node.textContent)
+                console.log(orig_texts[i])
+                */
             }
             node.onmouseenter = e => e.target.classList.add('active');
             node.onmouseleave = e => e.target.classList.remove('active');
@@ -473,25 +557,41 @@ function switchTranslation() {
                 }
             }
         });
-        // console.log("Alt+上: 已切換為譯文，title 顯示原文。")
-    }
-    else {
-        if (body0) {
-            document.body.innerHTML = body0;
+
+        if (orig_tran_modified) {
+            // 保存到 localStorage
+            upsertValueByPath('orig_texts_by_path', path, orig_texts)
+            upsertValueByPath('orig_htmls_by_path', path, orig_htmls)
+            upsertValueByPath('tran_texts_by_path', path, tran_texts)
+            upsertValueByPath('tran_htmls_by_path', path, tran_htmls)
+
+            // 句數若變少，多餘的記錄是不是也應該剪除呢？
+
+            // tmp_orig_tran 要不要也備份起來呢？
+            upsertValueByPath('tmp_orig_tran_by_path', path, tmp_orig_tran)
+
         }
+
+        //console.log(used_orig_tran)
+        //console.log(tmp_orig_tran)
+    }
+    else {  // 切換回原文
 
         document.querySelectorAll("sent").forEach((node, i)=>{
             node.id = `sent_${i}`
-            if (orig_htmls && i in orig_htmls) {
-                node.innerHTML = orig_htmls[i]
-            }
-            if (tran_texts && i in tran_texts) {
-                node.title = tran_texts[i]
+            if ((orig_htmls && i in orig_htmls)     // 原文 html 有記錄
+               && (orig_texts && i in orig_texts)) {    // 原文 text 有記錄
+                if (tran_texts && i in tran_texts) {    // 譯文有記錄
+                    node.title = tran_texts[i]
+                }
+                else {
+                    node.title = node.textContent
+                }
+                node.innerHTML = orig_htmls[i]  // 確認先把 title 設定好之後，才改變 innerHTML！
             }
             node.onmouseenter = e => e.target.classList.add('active');
             node.onmouseleave = e => e.target.classList.remove('active');
         });
-        // console.log("Alt+上: 已切換為原文，title 顯示譯文。")
     }
 }
 
