@@ -9,9 +9,9 @@ $(document).ready((e)=>{
 window.addEventListener('load', (e)=>{
 // window.addEventListener('DOMContentLoaded', (e)=> {
 
-    if (navigator.userAgentData.mobile   // 如果是行動瀏覽器的話==>新屬性，有些瀏覽器不支援
+    if ('ontouchstart' in document.documentElement // 通常行動裝置才會定義 touch 事件
         || typeof window.orientation !== 'undefined'    // 通常行動裝置才會定義螢幕方向
-        || 'ontouchstart' in document.documentElement) { // 通常行動裝置才會定義 touch 事件
+        || navigator.userAgentData.mobile) {   // 如果是行動瀏覽器的話==>新屬性，有些瀏覽器不支援
         // 在頁面中添加一個漂浮按鈕，讓沒有鍵盤快速鍵、無法召喚右鍵選單的行動裝置，得以召喚出 bT 功能
         showBTbuttonOnPage()
     }

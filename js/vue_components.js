@@ -255,7 +255,7 @@ Vue.component('orig_token', {
             slideInPanel('bt_token_panel')
         },
         dict_search: function (e) {
-            query_str = e.target.innerText;
+            query_str = e.target.textContent;
 
             if (query_str.length > 0) {
                 dictSearch(query_str)
