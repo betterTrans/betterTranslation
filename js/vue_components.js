@@ -156,7 +156,7 @@ Vue.component('orig_sent', {
                 for (var i in tokens) {
                     token_strs.push(tokens[i].text.content)
                 }
-                chrome.runtime.sendMessage({cmd: 'get_saved_terms', data: {tokens: token_strs} })
+                chrome.runtime.sendMessage({cmd: 'get_terms', data: {tokens: token_strs} })
             }
             else {
                 split_symbol = this.sent_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')

@@ -7,7 +7,9 @@ var tran_htmls = {}
 var tmp_orig_tran = []  // 存放著之前用過（可能也修改過）、但後來沒再用到的翻譯。。。是不是也應該留存起來呢？但留存這個到後來會不會爆炸呢？
 var translated = false
 var path = window.location.pathname + window.location.search
-
+var inform_flag = {
+  fetch_fail_use_localStorage: true,
+}
 
 var saved_terms = {}    // 用來保存可替換的詞語記錄，結構如下：
 /*
@@ -159,9 +161,9 @@ dependencyDict = {
     'APOSTMOD':'從屬形容詞',
     'APREMOD':'Previous屬性',
     */
-  }
+}
   
-  tagDict = {
+tagDict = {
     'UNKNOWN':'？',
     'ADJ':'形容詞',
     'ADP':'介系詞',
@@ -252,5 +254,5 @@ dependencyDict = {
     'ROOT':'',
     */
   
-  }
+}
   

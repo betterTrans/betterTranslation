@@ -46,6 +46,15 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             hotkey_handlers[message.cmd]();
         }
     }
+    else if (message.cmd == 'fetch_fail_use_localStorage') {
+        if (inform_flag.fetch_fail_use_localStorage) {
+            inform_flag.fetch_fail_use_localStorage = confirm(
+                '遠端存取失敗，故採用 localStorage 裡的資料。\n\n'+
+                '請注意！ localStorage 容量只有 5 MB 喲！\n\n'+
+                '如果不想再看到這個提醒，請按【取消】。'
+            )
+        }
+    }
     else if (message.cmd == 'save_term') {
         var active_token = message.data.active_token;
         var form_input = message.data.form_input;
@@ -106,7 +115,11 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             panels.$forceUpdate()
         }
     }
-    else if (message.cmd == 'return_saved_terms') {
+    else if (message.cmd == 'return_terms') {
+        // 或許應該結合 localStorage 裡的資料才對，或是兩邊進行同步。。。
+        // 目前是直接捨棄了 localStorage 的資料。。。 這樣實在不大對。
+        // 如果有一段時間離線使用，資料其實都存在 localStorage 裡頭。
+        // 一旦能連接到遠端，就應該把 localStorage 裡的新資料更新到遠端才對！！
         saved_terms = message.data.saved_terms;
         if (Object.keys(saved_terms).length > 0) {
             panels.$data.saved_terms = saved_terms;
@@ -140,6 +153,10 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             // 更新 Vue 實體
             panels.$data.syntax_results = syntax_results;
             panels.$forceUpdate()
+
+            // 遠端也應該進行更新？==》不必，因為語法分析結果不會在【本機】生成。完全以【遠端】資料為準。
+            // localStorage 裡的資料，當初也是從【遠端】取得的，保存在 localStorage 只是做為【快取】之用。
+            
         }
     }
     else if (message.cmd == 'dict_search_result') {
@@ -287,9 +304,6 @@ function CtrlDown(){
 //=========================
 // 公用函式
 //=========================
-function len(str){
-	return str.replace(/[^\x00-\xff]/g,"xx").length;
-}
 
 function switchToModification(node) {
     var prev_len = len(node.innerHTML)
@@ -438,8 +452,8 @@ function switchTranslation() {
     tran_texts = getValueByPath('tran_texts_by_path', path, {})
     tran_htmls = getValueByPath('tran_htmls_by_path', path, {})
     tmp_orig_tran = getValueByPath('tmp_orig_tran_by_path', path, [])
-    //saved_terms = localStorage.getItem('saved_terms')
-    //saved_terms = saved_terms?JSON.parse(saved_terms):{}
+    saved_terms = localStorage.getItem('saved_terms')
+    saved_terms = saved_terms?JSON.parse(saved_terms):{}
     syntax_results = localStorage.getItem('syntax_results')
     syntax_results = syntax_results?JSON.parse(syntax_results):{}
 
@@ -604,17 +618,6 @@ function dictSearch(query_str) {
     });
 }
 
-const synth = window.speechSynthesis; // 語言控制器，載入需要耗時，所以先在這裡載入
-function speak(msg) {
-    // synth 是全域變數，會耗時，不過等到執行這個函式時，應該已經執行完畢了
-    var voices = synth.getVoices();
-    var msgToSpeak = new SpeechSynthesisUtterance();
-    msgToSpeak.voice = voices.find(voice=>voice.name==='Google US English');
-    // msgToSpeak.voice = voices.find(voice=>voice.name==='Google 國語（臺灣）');
-    msgToSpeak.text = msg;
-    synth.speak(msgToSpeak);
-}
-
 function showBTbuttonOnPage(title="bT 翻譯") {
 
     if (!document.querySelector("#trigger_div")) {
@@ -658,10 +661,10 @@ function showBTbuttonOnPage(title="bT 翻譯") {
             location.reload();  // 重整頁面
         }
     }
-  }
+}
 
-  function removeBTbuttonOnPage() {
+function removeBTbuttonOnPage() {
     if (document.querySelector("#trigger_div")) {
         document.querySelector("#trigger_div").remove();
     }
-  }
+}
