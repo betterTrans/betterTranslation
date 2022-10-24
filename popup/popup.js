@@ -1,3 +1,4 @@
+
 window.addEventListener('DOMContentLoaded', ()=> {
 
     // 呈現快速鍵相關資訊

@@ -1,10 +1,3 @@
-/*
-$(document).ready((e)=>{
-    body0 = document.body.innerHTML;
-})
-*/
-
-// showBTbuttonOnPage()
 
 window.addEventListener('load', (e)=>{
 // window.addEventListener('DOMContentLoaded', (e)=> {
@@ -17,7 +10,6 @@ window.addEventListener('load', (e)=>{
     }
 
 })
-
 
 // 回應【背景服務】或【彈出頁面】送過來的請求
 chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
@@ -393,16 +385,6 @@ function cancelModification() {
     slideOutPanel('bt_sent_panel')
 
     return prev_sent_id
-}
-
-function removeDoubleFontTagOfGoogleTranslation(html_str) {
-    re_google_double_font_tag_1 = /\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>/g
-    // re_google_double_font_tag_2 = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
-    html_str = html_str
-        .replace(re_google_double_font_tag_1, '$1')
-        .replace(re_google_double_font_tag_1, '$1')  // 會有兩層，所以清理兩次
-
-    return html_str
 }
 
 // 換句

@@ -1,5 +1,16 @@
+
 function len(str){
 	return str.replace(/[^\x00-\xff]/g,"xx").length;
+}
+
+function removeDoubleFontTagOfGoogleTranslation(html_str) {
+    re_google_double_font_tag_1 = /\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>/g
+    // re_google_double_font_tag_2 = /\<font style\=\"vertical\-align\: inherit\;\"\>\<font style\=\"vertical\-align\: inherit\;\"\>(.*?)\<\/font\>\<\/font\>/g
+    html_str = html_str
+        .replace(re_google_double_font_tag_1, '$1')
+        .replace(re_google_double_font_tag_1, '$1')  // 會有兩層，所以清理兩次
+
+    return html_str
 }
 
 const synth = window.speechSynthesis; // 語言控制器，載入需要耗時，所以先在這裡載入
