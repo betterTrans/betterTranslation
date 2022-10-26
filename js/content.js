@@ -309,6 +309,11 @@ function switchToModification(node) {
     var textarea = node.querySelector("textarea")
     textarea.cols = prev_len
     textarea.style.height = `${textarea.scrollHeight}px`
+    textarea.scrollIntoView({
+        behavior: "auto",
+        block: "center",
+        inline: "nearest",
+    })
     textarea.focus()
 
     // 設定面板、並把【句子面板】滑出來
