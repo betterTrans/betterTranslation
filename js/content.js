@@ -4,7 +4,7 @@ window.addEventListener('load', (e)=>{
 
     if ('ontouchstart' in document.documentElement // 通常行動裝置才會定義 touch 事件
         || typeof window.orientation !== 'undefined'    // 通常行動裝置才會定義螢幕方向
-        || navigator.userAgentData.mobile) {   // 如果是行動瀏覽器的話==>新屬性，有些瀏覽器不支援
+        || (navigator.userAgentData && navigator.userAgentData.mobile)) {   // 如果是行動瀏覽器的話==>新屬性，有些瀏覽器不支援
         // 在頁面中添加一個漂浮按鈕，讓沒有鍵盤快速鍵、無法召喚右鍵選單的行動裝置，得以召喚出 bT 功能
         showBTbuttonOnPage()
     }
@@ -299,36 +299,19 @@ function CtrlDown(){
 
 function switchToModification(node) {
     var prev_len = len(node.innerHTML)
-    // prev_len = len(node.textContent)
 
     // 詞語替換
-    var old_innerHTML = node.innerHTML
-    var orig_text = orig_texts[parseInt(node.id.replace('sent_',''))]
-    var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')
-    var tokens = split_symbol.split(' ')
-    var saved_tokens = Object.keys(saved_terms)
-    var terms2replace = tokens.filter(ele=>saved_tokens.includes(ele))
-    var new_innerHTML = old_innerHTML
-    for (var i in terms2replace) {
-        var term = terms2replace[i]
-        var exps = saved_terms[term]
-        for (var j in exps) {
-            var exp = exps[j]
-            if (exp.mt_text.length>0 && exp.tt_text.length>0) {
-                new_innerHTML = new_innerHTML.replace(exp.mt_text, exp.tt_text)
-            }
-        }
-    }
+    var new_innerHTML = replaceTerms(node.innerHTML, saved_terms)
 
-    node.innerHTML = `<textarea>${new_innerHTML}</textarea>`
-    // node.innerHTML = `<textarea>${node.innerHTML}</textarea>`
-    // node.innerHTML = `<textarea>${node.textContent}</textarea>`
+    // 設定文字編輯框
+    node.innerHTML = `<textarea id="sent_editor">${new_innerHTML}</textarea>`
 
     var textarea = node.querySelector("textarea")
     textarea.cols = prev_len
     textarea.style.height = `${textarea.scrollHeight}px`
     textarea.focus()
 
+    // 設定面板、並把【句子面板】滑出來
     setPanels({
         node: node,
         active_token: '',
@@ -590,6 +573,35 @@ function switchTranslation() {
         });
     }
 }
+
+// 替換詞語
+function replaceTerms(old_innerHTML, saved_terms) {
+
+    // 取出句中所有 tokens
+    var orig_text = html2text(old_innerHTML)
+    var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')  // 把標點符號與單詞拆開
+    var tokens = split_symbol.split(' ')
+
+    // 找出有替換資料的 terms2replace
+    var saved_tokens = Object.keys(saved_terms)
+    var terms2replace = tokens.filter(ele=>saved_tokens.includes(ele))
+
+    // 逐一進行替換
+    var new_innerHTML = old_innerHTML
+    for (var i in terms2replace) {
+        var term = terms2replace[i]
+        var exps = saved_terms[term]
+        for (var j in exps) {
+            var exp = exps[j]
+            if (exp.mt_text.length>0 && exp.tt_text.length>0) {
+                new_innerHTML = new_innerHTML.replace(exp.mt_text, exp.tt_text)
+            }
+        }
+    }
+
+    return new_innerHTML
+}
+
 
 // 到外部去查詢，再用 onMessage 的 'dict_search_result' 收取結果，再進行後續處理
 function dictSearch(query_str) {

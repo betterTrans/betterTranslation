@@ -38,3 +38,8 @@ function obj_in_list(obj={}, list=[]) {
     return obj_in_list
 }
 
+function html2text(str) {
+    var tmp_div = document.createElement('div')
+    tmp_div.innerHTML = str
+    return tmp_div.textContent
+}
