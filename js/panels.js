@@ -68,14 +68,20 @@ function slideOutPanel(id, duration = '300ms', overlay = false) {
     }
 }
 
-function togglePanel(id) {
+function panelIsON(id) {
+    var is_on = null
     var panel = document.querySelector("div#" + id);
     if (panel) {
-        if (panel.classList.contains('on')) {
-            slideOutPanel(id);
-        } else {
-            slideInPanel(id);
-        }
+        is_on = panel.classList.contains('on')
+    }
+    return is_on
+}
+
+function togglePanel(id) {
+    if (panelIsON(id)) {
+        slideOutPanel(id);
+    } else {
+        slideInPanel(id);
     }
 }
 
@@ -83,6 +89,16 @@ var panels = null
 function setPanels(data) {
     if (panels) {
         panels.$data.sent_id = data.node?data.node.id:'sent_0'
+        panels.$data.active_token = data.active_token?data.active_token:''
+        panels.$data.input = data.node?data.node.innerHTML:''
+
+        panels.$data.orig_htmls = data.orig_htmls?data.orig_htmls:{}
+        panels.$data.orig_texts = data.orig_texts?data.orig_texts:{}
+        panels.$data.tran_htmls = data.tran_htmls?data.tran_htmls:{}
+        panels.$data.tran_texts = data.tran_texts?data.tran_texts:{}
+        panels.$data.saved_terms = data.saved_terms?data.saved_terms:{}
+        panels.$data.syntax_results = data.syntax_results?data.syntax_results:{}
+        //*/
     }
     else {
         panels = new Vue({
@@ -90,6 +106,7 @@ function setPanels(data) {
                 return {
                     sent_id: data.node?data.node.id:'sent_0',
                     active_token: data.active_token?data.active_token:'',
+                    input: data.node? data.node.innerHTML: '',
                     orig_htmls: data.orig_htmls?data.orig_htmls:{},
                     orig_texts: data.orig_texts?data.orig_texts:{},
                     tran_htmls: data.tran_htmls?data.tran_htmls:{},
@@ -103,6 +120,7 @@ function setPanels(data) {
             <bt_panels
                 :sent_id="sent_id"
                 :active_token="active_token"
+                :input="input"
                 :orig_htmls="orig_htmls"
                 :orig_texts="orig_texts"
                 :tran_htmls="tran_htmls"
@@ -116,6 +134,7 @@ function setPanels(data) {
                     props: {
                         sent_id: this.sent_id,
                         active_token: this.active_token,
+                        input: this.input,
                         orig_htmls: this.orig_htmls,
                         orig_texts: this.orig_texts,
                         tran_htmls: this.tran_htmls,

@@ -42,6 +42,10 @@ div#bt_sent_panel {
     box-shadow: 0px 5px 15px 5px #333;
 }
 
+div#bt_sent_panel_head {
+    background-color: #ccc;
+}
+
 /* 原文 token */
 .orig_token {
     color: black;

@@ -155,6 +155,14 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
         // 發出【外查字典】dict_search 的請求後，如果收到查詢結果，就用 vue 把查詢結果呈現出來
         showDict4Token(message.data);
     }
+    else if (message.cmd == "reset_modification_inteface") {
+        if ("sent_id" in message.data) {
+            node = document.querySelector(`sent#${message.data.sent_id}`)
+            if (node) {
+                switchToModification(node)
+            }
+        }
+    }
 });
 
 document.onkeydown = (e) =>{
@@ -298,23 +306,37 @@ function CtrlDown(){
 //=========================
 
 function switchToModification(node) {
-    var prev_len = len(node.innerHTML)
 
-    // 詞語替換
-    var new_innerHTML = replaceTerms(node.innerHTML, node.title, saved_terms)
+    var old_innerHTML = node.innerHTML.includes('textarea') ?
+        node.innerHTML.replace(/<textarea[^>]*>(.*)<\/textarea>/, '$1') :
+        node.innerHTML
 
-    // 設定文字編輯框
-    node.innerHTML = `<textarea id="sent_editor">${new_innerHTML}</textarea>`
-
-    var textarea = node.querySelector("textarea")
-    textarea.cols = prev_len
-    textarea.style.height = `${textarea.scrollHeight}px`
-    textarea.scrollIntoView({
+    // 讓正在編輯的句子，顯示在畫面中央
+    node.scrollIntoView({
         behavior: "auto",
         block: "center",
         inline: "nearest",
     })
-    textarea.focus()
+
+    // 設定 editing 的類別 class
+    document.querySelectorAll(".editing").forEach(ele=>ele.classList.remove("editing"))
+    node.classList.add("editing")
+
+
+    // 詞語替換
+    var new_innerHTML = replaceTerms(old_innerHTML, node.title, saved_terms)
+
+    if (!feature_switch.input_in_panel) {   // 如果翻譯編輯界面不放在面板中，就直接針對 sent 句子進行編輯
+        // 設定文字編輯框
+        node.innerHTML = `<textarea
+            id="sent_editor_inline"
+            class="sent_editor"
+            name="${node.id}"
+            cols="${len(new_innerHTML)}">${new_innerHTML}</textarea>`
+    }
+    else {
+        node.innerHTML = new_innerHTML
+    }
 
     // 設定面板、並把【句子面板】滑出來
     setPanels({
@@ -328,13 +350,15 @@ function switchToModification(node) {
         syntax_results: syntax_results,
     });
     slideInPanel('bt_sent_panel')
+
+    document.querySelector("textarea.sent_editor").focus()  // 至此一定有這個元素，沒有的話，仔細檢查程式碼流程！！
 }
 
 function confirmModification() {
     var prev_sent_id = null
-    var prev_textarea = document.querySelector("sent textarea")
-    if (prev_textarea) {
-        var prev_sent = prev_textarea.parentNode
+    var prev_textarea = document.querySelector("textarea.sent_editor")
+    if (prev_textarea && panelIsON('bt_sent_panel')) { // 【句子面板】有打開，才能確認翻譯修改
+        var prev_sent = document.querySelector(`sent#${prev_textarea.name}`)
         if (prev_sent) {
             prev_sent_id = prev_sent.id
             prev_sent.innerHTML = prev_textarea.value
@@ -357,13 +381,14 @@ function confirmModification() {
 
 function cancelModification() {
     var prev_sent_id = null
-    var prev_textarea = document.querySelector("sent textarea")
-    if (prev_textarea) {
-        var prev_sent = prev_textarea.parentNode
+    var prev_textarea = document.querySelector("textarea.sent_editor")
+    if (prev_textarea && panelIsON('bt_sent_panel')) { // 【句子面板】有打開，才能取消翻譯修改
+        var prev_sent = document.querySelector(`sent#${prev_textarea.name}`)
         if (prev_sent) {
             prev_sent_id = prev_sent.id
             i = parseInt(prev_sent_id.replace('sent_',''))
             prev_sent.innerHTML = tran_htmls[i]
+            prev_textarea.value = tran_htmls[i]
 
             // 保存到 localStorage
             upsertValueByPath('prev_sent_id_by_path', path, prev_sent_id)

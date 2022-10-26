@@ -11,6 +11,7 @@ Vue.component('bt_panels', {
     props: [
         'sent_id',
         'active_token',
+        'input',
         'orig_htmls',
         'orig_texts',
         'tran_htmls',
@@ -23,6 +24,8 @@ Vue.component('bt_panels', {
     <div id="bt_panels">
         <bt_sent_panel
             :sent_id="sent_id"
+            :active_token="active_token"
+            :input="input"
             :orig_htmls="orig_htmls"
             :orig_texts="orig_texts"
             :tran_htmls="tran_htmls"
@@ -49,6 +52,7 @@ Vue.component('bt_panels', {
                 props: {
                     sent_id: this.sent_id,
                     active_token: this.active_token,
+                    input: this.input,
                     orig_htmls: this.orig_htmls,
                     orig_texts: this.orig_texts,
                     tran_htmls: this.tran_htmls,
@@ -77,6 +81,7 @@ Vue.component('bt_sent_panel', {
     props: [
         'sent_id',
         'active_token',
+        'input',
         'orig_htmls',
         'orig_texts',
         'tran_htmls',
@@ -84,15 +89,39 @@ Vue.component('bt_sent_panel', {
         'saved_terms',
         'syntax_results'
     ],
+    computed: {
+        sents_count: function() { return Object.keys(orig_htmls).length; },
+    },
+    methods: {
+        closeSentPanel: function () {
+            togglePanel("bt_sent_panel", 'bottom');
+        },
+        switchTextarea: function () {
+            feature_switch.input_in_panel = !feature_switch.input_in_panel
+            // 向外發出訊息，請求更新界面（不可直接在此執行 switchToModification()，focus 會找不到 textarea）
+            chrome.runtime.sendMessage({
+                cmd:'reset_modification_inteface', 
+                data:{sent_id: this.sent_id},
+            })
+        },
+    },
     /*
     template: `
     <div id="bt_sent_panel" class="bt_ponel ">
+        <div id="bt_sent_panel_head">
+            <button v-on:click="closeSentPanel" title="收合面板">V</button>
+            <button v-on:click="switchTextarea" title="切換編輯框">[]</button>
+            句子編號：#{{sent_id}} / {{sents_count}}
+        </div>
         <orig_sent
             :sent_id="sent_id"
             :orig_texts="orig_texts"
             :saved_terms="saved_terms"
             :syntax_results="syntax_results"
         ></orig_sent>
+        <textarea id="sent_editor_in_panel" class="sent_editor">
+            {{input}}
+        <textarea>
     </div>`
     */
     render(h) {
@@ -101,6 +130,19 @@ Vue.component('bt_sent_panel', {
             attrs: {id: "bt_sent_panel", },
         },
         [
+            h('div', {
+                attrs: {id: "bt_sent_panel_head", },
+            }, [
+                h('button', {
+                    attrs: {title: "收合面板"},
+                    on: { click: this.closeSentPanel }
+                }, 'V'),
+                h('button', {
+                    attrs: {title: "切換編輯框"},
+                    on: { click: this.switchTextarea }
+                }, '[]'),
+                `句子編號：#${this.sent_id} / ${this.sents_count}`,
+            ]),
             h('orig_sent', {
                 props: {
                     sent_id: this.sent_id,
@@ -108,7 +150,28 @@ Vue.component('bt_sent_panel', {
                     saved_terms: this.saved_terms,
                     syntax_results: this.syntax_results,
                 }
-            }, [])
+            }, []),
+            (feature_switch.input_in_panel)?
+            h('textarea', {
+                class: ["sent_editor"],
+                attrs: {
+                    id: "sent_editor_in_panel",
+                    name: this.sent_id,
+                },
+                domProps: {
+                    value: this.input,   // 這相當於 v-bind：用 Vue.data 去設定 DOM 的 attr 屬性
+                },
+                // 【v-model】
+                // textarea 的 v-model 要看 input 事件，同步 value 的值
+                on: {
+                    input: e => {
+                        this.input = e.target.value;  // 這相當於 v-model：用 DOM 的 attr 屬性去更新 Vue.data
+                        document.querySelector(`#${this.sent_id}`).innerHTML = this.input   // 直接去改外部相應的內文？？！！
+                        // this.$emit('input_changed', this.input);  // 再送個事件出去，讓別處也可以得到通知
+                    },
+                },
+            })
+            :''
         ])
     }
 });

@@ -2,6 +2,10 @@
     color:red;
 }
 
+.editing {
+    background-color: rgb(164, 255, 247);
+}
+
 textarea {
     max-width: 100%;
     resize: none;
@@ -11,6 +15,13 @@ textarea {
 
 textarea::-webkit-scrollbar {
     width: 0px;
+}
+
+textarea#sent_editor_in_panel {
+    clear: "both";
+    width: 90%;
+    margin: 10px;
+    height: 5em;
 }
 
 #trigger_div {

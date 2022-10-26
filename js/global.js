@@ -11,6 +11,9 @@ var path = window.location.pathname + window.location.search
 var inform_flag = {
   fetch_fail_use_localStorage: true,
 }
+var feature_switch = {
+  input_in_panel: true,  // 預設在原文處修改翻譯，而不是在句子面板中修改翻譯。。。
+}
 
 var saved_terms = {}    // 用來保存可替換的詞語記錄，結構如下：
 /*

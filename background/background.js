@@ -121,6 +121,14 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             })
         }
     }
+    else if (message.cmd == "reset_modification_inteface") {
+        if ("sent_id" in message.data) {
+            chrome.tabs.sendMessage(sender.tab.id, {
+                cmd: 'reset_modification_inteface',
+                data: message.data
+            });
+        }
+    }
 });
 
 chrome.commands.onCommand.addListener((command) => {
