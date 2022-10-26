@@ -57,7 +57,7 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             if (!response) {
                 // 之前已先從 localStorage 快取資料來使用了。
                 // 向外部取資料沒成功的話，就用 localStorage 裡的資料即可。
-                pass
+
                 // 但其實【本機】資料已修改，但【遠端】沒修改到，照說應該在可連線時檢查兩邊的資料並進行同步操作才對！！
                 // 最好當然是能【自動同步更新】，但如果太麻煩，也可以採用【被動觸發同步更新】做為階段性的做法
                 chrome.tabs.sendMessage(sender.tab.id, { cmd: 'fetch_fail_use_localStorage' });
@@ -73,7 +73,7 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             if (!response) {
                 // 之前已先從 localStorage 快取資料來使用了。
                 // 向外部取資料沒成功的話，就用 localStorage 裡的資料即可。
-                pass
+
                 // 但其實【本機】資料已修改，但【遠端】沒修改到，照說應該在可連線時檢查兩邊的資料並進行同步操作才對！！
                 // 最好當然是能【自動同步更新】，但如果太麻煩，也可以採用【被動觸發同步更新】做為階段性的做法
                 chrome.tabs.sendMessage(sender.tab.id, { cmd: 'fetch_fail_use_localStorage' });

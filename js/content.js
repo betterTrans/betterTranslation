@@ -301,7 +301,7 @@ function switchToModification(node) {
     var prev_len = len(node.innerHTML)
 
     // 詞語替換
-    var new_innerHTML = replaceTerms(node.innerHTML, saved_terms)
+    var new_innerHTML = replaceTerms(node.innerHTML, node.title, saved_terms)
 
     // 設定文字編輯框
     node.innerHTML = `<textarea id="sent_editor">${new_innerHTML}</textarea>`
@@ -575,10 +575,9 @@ function switchTranslation() {
 }
 
 // 替換詞語
-function replaceTerms(old_innerHTML, saved_terms) {
+function replaceTerms(old_innerHTML, orig_text, saved_terms) {
 
-    // 取出句中所有 tokens
-    var orig_text = html2text(old_innerHTML)
+    // 取出原文句中所有 tokens
     var split_symbol = orig_text.replace(/([a-zA-Z0-9])([.,!;:\?])/g, '$1 $2')  // 把標點符號與單詞拆開
     var tokens = split_symbol.split(' ')
 
