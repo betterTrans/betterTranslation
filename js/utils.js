@@ -43,3 +43,10 @@ function html2text(str) {
     tmp_div.innerHTML = str
     return tmp_div.textContent
 }
+
+function getHtmlFromTextarea(str) {
+    var tmp_div = document.createElement('div')
+    tmp_div.innerHTML = str
+    var tmp_textarea = tmp_div.querySelector('textarea')
+    return tmp_textarea ? tmp_textarea.value : ''
+}

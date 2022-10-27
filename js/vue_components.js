@@ -89,8 +89,26 @@ Vue.component('bt_sent_panel', {
         'saved_terms',
         'syntax_results'
     ],
+    data: function () {
+        return {
+            input_tag_simplized: true,  // 預設簡化標籤
+            input_tag_list: {},
+        }
+    },
     computed: {
-        sents_count: function() { return Object.keys(orig_htmls).length; },
+        sents_count: function() { return Object.keys(orig_htmls).length },
+        sent_index: function () { return parseInt(this.sent_id.replace('sent_','')) },
+        orig_tag_list: function() { return this.getTagList(this.orig_htmls[this.sent_index]) },
+        input_tag: function() {
+            if (/\<[a-zA-Z0-9]+\s*([^\>])*\>/.test(this.input)) {  // 如果有 <tag> 頭的話。。。
+                this.input_tag_list = this.getTagList(this.input);
+            }
+            return {
+                simplized_input: this.getTagSimplizedInput(this.input, this.input_tag_list),
+                restored_input: this.getTagRestoredInput(this.input, this.input_tag_list),
+            }
+        },
+        tag_btn_label: function() { return this.input_tag_simplized ? "還原標籤" : "簡化標籤" },
     },
     methods: {
         closeSentPanel: function () {
@@ -104,6 +122,80 @@ Vue.component('bt_sent_panel', {
                 data:{sent_id: this.sent_id},
             })
         },
+        switchTagSimplize: function () {
+            this.input_tag_simplized = !this.input_tag_simplized
+        },
+        // 簡化標籤處理：取出 tag 標籤列表
+        getTagList: function(html, recursive_times) {
+            var tag_list = {};
+            if (/\<[a-zA-Z0-9]+\s*([^\>])*\>/.test(this.input)) {  // 如果有 <tag> 頭的話。。
+                recursive_times = recursive_times || 0;
+                var max_recursive_times = 10; // 避免陷入結構過深 stackoverflow 的情況。。。
+                if (recursive_times > max_recursive_times) return {};
+
+                // 先把 HTML 轉成物件
+                var htmlObj = document.createElement('div');
+                htmlObj.innerHTML = html;
+
+                // 從物件中取出 tag 子標籤
+                for (var i = 0; i < htmlObj.children.length; i++) {
+                    var ele = htmlObj.children[i];
+                    tag_list[i] = ele;
+                    // 如果還有子標籤的話。。。
+                    if (ele.children.length > 0) {
+                        var children_tag_list = this.getTagList(ele.innerHTML, recursive_times++);
+                        for (var j in children_tag_list) {
+                            tag_list[i + '_' + j] = children_tag_list[j];
+                        }
+                    }
+                }
+            }
+            return tag_list;
+        },
+        node2tagHeadTail: function(node) {
+            var tagHeadTail = {}
+            if (node.outerHTML) {
+                var tag_head = node.outerHTML.match(/^\<[a-zA-Z0-9]+\s*([^\>])*\>/);
+                tag_head = tag_head && tag_head[0];
+                var tag_tail = node.outerHTML.match(/\<\/[a-zA-Z0-9]+\>$/);
+                tag_tail = tag_tail && tag_tail[0];
+                tagHeadTail = {
+                    tag_head: tag_head,
+                    tag_tail: tag_tail,
+                }
+            }
+            return tagHeadTail
+        },
+        // 簡化標籤處理：根據 tag 標籤列表，進行文字簡化
+        getTagSimplizedInput: function(input, tag_list) {
+            if (/\<[a-zA-Z0-9]+\s*([^\>])*\>/.test(input)) {  // 如果有 <tag> 頭的話。。。
+                // 簡化標簽
+                for (var k in tag_list) {
+                    var tagHeadTail = this.node2tagHeadTail(tag_list[k]);
+                    if (tagHeadTail.tag_head && tagHeadTail.tag_tail) { // 頭尾都有才做替換
+                        input = input // 這種做法遇到多層的相同 tag 會有問題==》待改進
+                            .replace(tagHeadTail.tag_head, '{' + k + '}')
+                            .replace(tagHeadTail.tag_tail, '{/' + k + '}');
+                    }
+                }
+            }
+            return input;
+        },
+        // 簡化標籤處理：根據 tag 標籤列表，還原簡化前文字
+        getTagRestoredInput: function(input, tag_list) {
+            if (/\{[0-9_]+\}/.test(input)) {  // 如果有 {編號} 頭的話。。。
+                // 簡化標簽
+                for (var k in tag_list) {
+                    var tagHeadTail = this.node2tagHeadTail(tag_list[k]);
+                    if (tagHeadTail.tag_head && tagHeadTail.tag_tail) { // 頭尾都有才做替換
+                        input = input // 這種做法遇到多層的相同 tag 會有問題==》待改進
+                            .replace('{' + k + '}', tagHeadTail.tag_head)
+                            .replace('{/' + k + '}', tagHeadTail.tag_tail);
+                    }
+                }
+            }
+            return input;
+        },
     },
     /*
     template: `
@@ -112,6 +204,7 @@ Vue.component('bt_sent_panel', {
             <button v-on:click="closeSentPanel" title="收合面板">V</button>
             <button v-on:click="switchTextarea" title="切換編輯框">[]</button>
             句子編號：#{{sent_id}} / {{sents_count}}
+            <button v-on:click="switchTagSimplize" title="切換簡化標籤">{{tag_btn_label}}</button>
         </div>
         <orig_sent
             :sent_id="sent_id"
@@ -140,8 +233,12 @@ Vue.component('bt_sent_panel', {
                 h('button', {
                     attrs: {title: "切換編輯框"},
                     on: { click: this.switchTextarea }
-                }, '[]'),
-                `句子編號：#${this.sent_id} / ${this.sents_count}`,
+                }, '[ ]'),
+                ` 句子編號：#${this.sent_id} / ${this.sents_count} `,
+                h('button', {
+                    attrs: {title: "切換標籤簡化"},
+                    on: { click: this.switchTagSimplize }
+                }, this.tag_btn_label),
             ]),
             h('orig_sent', {
                 props: {
@@ -159,14 +256,18 @@ Vue.component('bt_sent_panel', {
                     name: this.sent_id,
                 },
                 domProps: {
-                    value: this.input,   // 這相當於 v-bind：用 Vue.data 去設定 DOM 的 attr 屬性
+                    // value: this.input,   // 這相當於 v-bind：用 Vue.data 去設定 DOM 的 attr 屬性
+                    value: this.input_tag_simplized ?
+                        this.input_tag.simplized_input :
+                        this.input_tag.restored_input
                 },
                 // 【v-model】
                 // textarea 的 v-model 要看 input 事件，同步 value 的值
                 on: {
                     input: e => {
                         this.input = e.target.value;  // 這相當於 v-model：用 DOM 的 attr 屬性去更新 Vue.data
-                        document.querySelector(`#${this.sent_id}`).innerHTML = this.input   // 直接去改外部相應的內文？？！！
+                        document.querySelector(`#${this.sent_id}`).innerHTML =
+                            this.input_tag_simplized ? this.input_tag.restored_input : this.input   // 直接去改外部相應的內文？？！！
                         // this.$emit('input_changed', this.input);  // 再送個事件出去，讓別處也可以得到通知
                     },
                 },

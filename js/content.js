@@ -491,11 +491,7 @@ function switchTranslation() {
 }
 
 
-function switchToModification(node) {
-
-    var old_innerHTML = node.innerHTML.includes('textarea') ?
-        node.innerHTML.replace(/<textarea[^>]*>(.*)<\/textarea>/, '$1') :
-        node.innerHTML
+function switchToModification(node) {   // 做了一堆雜事。。。有空應該整倂一下！
 
     // 讓正在編輯的句子，顯示在畫面中央
     node.scrollIntoView({
@@ -508,9 +504,11 @@ function switchToModification(node) {
     document.querySelectorAll(".editing").forEach(ele=>ele.classList.remove("editing"))
     node.classList.add("editing")
 
-
     // 詞語替換
-    var new_innerHTML = replaceTerms(old_innerHTML, node.title, saved_terms)
+    var old_innerHTML = node.innerHTML.includes('textarea') ?
+        getHtmlFromTextarea(node.innerHTML) : node.innerHTML
+
+    node.innerHTML = replaceTerms(old_innerHTML, node.title, saved_terms)
 
     if (!feature_switch.input_in_panel) {   // 如果翻譯編輯界面不放在面板中，就直接針對 sent 句子進行編輯
         // 設定文字編輯框
@@ -518,11 +516,11 @@ function switchToModification(node) {
             id="sent_editor_inline"
             class="sent_editor"
             name="${node.id}"
-            cols="${len(new_innerHTML)}">${new_innerHTML}</textarea>`
+            cols="${len(node.innerHTML)}">${node.innerHTML}</textarea>`
+        var textarea = node.querySelector("textarea#sent_editor_inline")
+        textarea.style.height = `${textarea.scrollHeight}px`
     }
-    else {
-        node.innerHTML = new_innerHTML
-    }
+
 
     // 設定面板、並把【句子面板】滑出來
     setPanels({
@@ -537,7 +535,10 @@ function switchToModification(node) {
     });
     slideInPanel('bt_sent_panel')
 
-    document.querySelector("textarea.sent_editor").focus()  // 至此一定有這個元素，沒有的話，仔細檢查程式碼流程！！
+    setTimeout(()=>{
+        // Panels 生成可能需要一點時間。。。這裡稍微延遲一下才不會出錯
+        document.querySelector("textarea.sent_editor").focus()  // 至此一定有這個元素，沒有的話，仔細檢查程式碼流程！！
+    },100)
 }
 
 function confirmModification() {
@@ -547,7 +548,11 @@ function confirmModification() {
         var prev_sent = document.querySelector(`sent#${prev_textarea.name}`)
         if (prev_sent) {
             prev_sent_id = prev_sent.id
-            prev_sent.innerHTML = prev_textarea.value
+
+            // 如果編輯框在行內，就直接採用其值（沒有簡化標籤），否則就直接採用 sent.innerHTML（簡化標籤已還原）
+            prev_sent.innerHTML = prev_sent.innerHTML.includes('textarea') ?
+            getHtmlFromTextarea(prev_sent.innerHTML) : prev_sent.innerHTML
+
             // 保存修改
             i = parseInt(prev_sent_id.replace('sent_',''))
             tran_texts[i] = prev_sent.textContent
