@@ -50,3 +50,36 @@ function getHtmlFromTextarea(str) {
     var tmp_textarea = tmp_div.querySelector('textarea')
     return tmp_textarea ? tmp_textarea.value : ''
 }
+
+// 把 data 下載到 file 中
+function download(data, filename, type='text/plain;charset=utf-8') {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
+
+// 取得當下日期時間字串
+function getDateString() {
+    var dt = new Date();
+    yy = dt.getFullYear();
+    mm = dt.getMonth() + 1;
+    mm = (mm < 10 ? '0' : '') + mm;
+    dd = ('0' + dt.getDate()).slice(-2);
+    hh = ('0' + dt.getHours()).slice(-2);
+    min = ('0' + dt.getMinutes()).slice(-2);
+    sec = ('0' + dt.getSeconds()).slice(-2);
+
+    return yy + '-' + mm + '-' + dd + '-' + hh + '-' + min + '-' + sec 
+}

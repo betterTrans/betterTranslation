@@ -163,6 +163,24 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
             }
         }
     }
+    else if (message.cmd == "export_translations") {
+        filename = 'translations_' + window.location.host + '_' + getDateString() + '_all_path.json'
+        translations = getTranslationsFromLocalStorage(all_path=true)
+        download(JSON.stringify(translations), filename, 'application/json;charset=utf-8');
+    }
+    else if (message.cmd == "import_translations") {
+        translations = JSON.parse(message.data.file)
+        setTranslationsFromLocalStorage(translations)
+    }
+    else if (message.cmd == "export_terms") {
+        filename = 'terms_syntaxs_' + window.location.host + '_' + getDateString() + '.json'
+        terms_syntaxs = getTermsSyntaxsFromLocalStorage()
+        download(JSON.stringify(terms_syntaxs), filename, 'application/json;charset=utf-8');
+    }
+    else if (message.cmd == "import_terms") {
+        terms_syntaxs = JSON.parse(message.data.file)
+        setTermsSyntaxsFromLocalStorage(terms_syntaxs)
+    }
 });
 
 document.onkeydown = (e) =>{

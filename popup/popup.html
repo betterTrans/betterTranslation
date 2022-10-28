@@ -6,6 +6,7 @@
     <body>
         <h1>更好的翻譯</h1>
         <h3>預設快速鍵說明：（<a id="customize_hotkey" href="">自定義快速鍵</a>）</h3>
+        <hr>
         <div>
             <ul id="hotkey_desc">
                 <li>Alt+1：進行分句，並備份原文</li>
@@ -18,8 +19,24 @@
             </ul>
         </div>
         <div>
+            <h3>翻譯&詞語備份匯入匯出</h3>
+            <label for="api_key_input_text">此功能只能備份相同網域內的翻譯&詞語資料。</label>
+            <hr>
+            <div>
+                <input type="button" id="export_translations" value="匯出翻譯" />
+                <input type="button" id="import_translations" value="匯入翻譯" />
+                <input type="file" id="import_translations_selector"
+                    style="display: none" accept=".json" />
+                <input type="button" id="export_terms" value="匯出詞語" />
+                <input type="button" id="import_terms" value="匯入詞語" />
+                </strong><input type="file" id="import_terms_selector"
+                    style="display: none" accept=".json" />
+            </div>
+        </div>
+        <div>
             <h3>一鍵翻譯：</h3>
             <label for="api_key_input_text">此功能會使用到 Google 翻譯 API。請使用您自己的 API_KEY：</label>
+            <hr>
             <div>
                 <input type="text" id="api_key_input_text" name="api_key" required size="40">
                 <input type="button" id="api_key_confirm_button" value="送出" >
